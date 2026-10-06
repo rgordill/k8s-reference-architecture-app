@@ -11,4 +11,4 @@ colors:
     text: '#f0f0f0'
 edge:
   strokeWidth: 2
-  dashArray: '4 4'
+  dashArray: '2 8'

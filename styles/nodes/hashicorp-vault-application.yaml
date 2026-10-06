@@ -1,8 +1,10 @@
 id: hashicorp-vault-application
 kind: node
 logo:
-  type: patternfly
-  value: LockIcon
+  type: url
+  # Vault Community from https://www.hashicorp.com/en/brand/hcp-product-logos
+  value: logo/vault/Vault-LogoMark_onLight.svg
+  valueDark: logo/vault/Vault-LogoMark_onDark.svg
 colors:
   light:
     fill: '#e7f1fa'

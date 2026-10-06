@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import styleFixtures from 'virtual:style-fixtures';
 import {
   architectureRepository,
   styleRepository,
   type Architecture,
   type StyleDefinition,
 } from './index';
+import { parseStyleFile } from './local/loadYaml';
 import { validateArchitecture } from './validateArchitecture';
 
 async function loadCatalog(): Promise<{
@@ -54,6 +56,24 @@ describe('architecture catalog invariants', () => {
       expect(style.colors.light.stroke).toBeTruthy();
       expect(style.colors.dark.fill).toBeTruthy();
       expect(style.colors.dark.stroke).toBeTruthy();
+    }
+  });
+
+  it('places each style YAML file under nodes/, groups/, or edges/', () => {
+    const folderByKind: Record<string, string> = {
+      node: 'nodes',
+      group: 'groups',
+      edge: 'edges',
+    };
+    expect(styleFixtures.length).toBeGreaterThan(0);
+    for (const fixture of styleFixtures) {
+      const style = parseStyleFile(fixture.raw);
+      const folder = folderByKind[style.kind];
+      expect(folder, `${fixture.path} has kind ${style.kind}`).toBeTruthy();
+      expect(
+        fixture.path.startsWith(`${folder}/`),
+        `${fixture.path} should live under styles/${folder}/`,
+      ).toBe(true);
     }
   });
 });

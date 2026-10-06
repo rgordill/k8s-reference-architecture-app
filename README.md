@@ -7,9 +7,10 @@ Licensed under the [Apache License 2.0](LICENSE).
 ## Features
 
 - Load architecture definitions from YAML fixtures under `content/`
-- Load node/edge visual styles from YAML under `styles/` (logos, fonts, light/dark colors)
+- Load node/edge/group visual styles from YAML under `styles/` (logos, fonts, light/dark colors)
 - PatternFly UI with light/dark theme toggle
 - Static grid-aligned d3 diagrams (zones as columns, hierarchy top→bottom) with groups, pan/zoom, and PNG/SVG export
+- Node and group names support inline Markdown (`**bold**`, `*italic*`, `` `code` ``, `~~strike~~`, `~sub~`, `^sup^`)
 - Repository abstraction ready for a future Kubernetes API (CRDs / ConfigMaps)
 
 ## Quick start
@@ -35,13 +36,14 @@ npm run preview
 
 | Path | Role | Future source |
 |------|------|---------------|
-| `content/**/*.yaml` | Architecture documents (metadata + diagram graph) | Kubernetes CRDs / API |
-| `styles/*.yaml` | Visual style definitions (`id` referenced by nodes/edges) | ConfigMaps / API |
+| `content/**/*.yaml` | Architecture documents (metadata + diagram graph). Groups may list `nodes` and nested `groups`. | Kubernetes CRDs / API |
+| `styles/{nodes,groups,edges}/*.yaml` | Visual style definitions (`id` referenced by nodes, edges, and groups), grouped by `kind` | ConfigMaps / API |
+| `logo/**` | Local logo files referenced by `logo.type: url` | ConfigMaps / API |
 
 Style logos:
 
 - `logo.type: patternfly` + icon name (e.g. `LockIcon`, `DatabaseIcon`, `CubeIcon`) — PatternFly-safe defaults
-- `logo.type: url` + absolute/relative URL — custom logos
+- `logo.type: url` + relative path or absolute URL — custom logos (`valueDark` optional for dark theme)
 
 Example style:
 
@@ -87,7 +89,7 @@ It also uses permissive open-source dependencies:
 | js-yaml | MIT |
 | Vite, Vitest, TypeScript | MIT |
 
-Node icons use PatternFly-safe geometric icons by default. Where a style sets `logo.type: url`, artwork is loaded from that URL (for example the official cert-manager icon from [CNCF artwork](https://github.com/cncf/artwork)). This project is not affiliated with HashiCorp, CNCF, or the Linux Foundation. Use of third-party trademarks and logos is subject to each project’s trademark policy.
+Node icons use PatternFly-safe geometric icons by default. Where a style sets `logo.type: url`, artwork is loaded from that URL (for example the official cert-manager icon from [CNCF artwork](https://github.com/cncf/artwork)). HashiCorp Vault nodes use the **Vault Community** marks from the [HCP product logos](https://www.hashicorp.com/en/brand/hcp-product-logos) pack, stored under [`logo/vault/`](logo/vault/). This project is not affiliated with HashiCorp, IBM, CNCF, or the Linux Foundation. Use of third-party trademarks and logos is subject to each project’s trademark policy.
 
 ## Filtering
 

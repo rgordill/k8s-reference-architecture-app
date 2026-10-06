@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import { downloadTextFile, serializeSvg } from './exportDiagram';
+import {
+  downloadTextFile,
+  inlineSvgImages,
+  serializeSvg,
+} from './exportDiagram';
 
 describe('exportDiagram', () => {
   it('serializeSvg returns non-empty svg markup', () => {
@@ -36,12 +40,23 @@ describe('exportDiagram', () => {
   it('downloadTextFile creates an object URL', () => {
     const createObjectURL = vi.fn(() => 'blob:test');
     const revokeObjectURL = vi.fn();
-    vi.stubGlobal('URL', { createObjectURL, revokeObjectURL });
+    const originalCreate = URL.createObjectURL;
+    const originalRevoke = URL.revokeObjectURL;
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: createObjectURL,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      writable: true,
+      value: revokeObjectURL,
+    });
 
     const click = vi.fn();
-    const originalCreate = document.createElement.bind(document);
+    const originalCreateEl = document.createElement.bind(document);
     vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
-      const el = originalCreate(tag);
+      const el = originalCreateEl(tag);
       if (tag === 'a') {
         Object.defineProperty(el, 'click', { value: click });
       }
@@ -52,6 +67,39 @@ describe('exportDiagram', () => {
     expect(createObjectURL).toHaveBeenCalled();
     expect(click).toHaveBeenCalled();
     expect(revokeObjectURL).toHaveBeenCalled();
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      writable: true,
+      value: originalCreate,
+    });
+    Object.defineProperty(URL, 'revokeObjectURL', {
+      configurable: true,
+      writable: true,
+      value: originalRevoke,
+    });
     vi.restoreAllMocks();
+  });
+
+  it('inlines external image hrefs as data URIs', async () => {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+    image.setAttribute('href', '/logo/vault/mark.png');
+    image.setAttribute('width', '24');
+    image.setAttribute('height', '24');
+    svg.appendChild(image);
+    document.body.appendChild(svg);
+
+    const png = new Uint8Array([
+      137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0,
+      0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196, 137, 0, 0, 0, 10, 73, 68, 65, 84, 120,
+      156, 99, 0, 1, 0, 0, 5, 0, 1, 13, 10, 45, 180, 0, 0, 0, 0, 73, 69, 78, 68,
+      174, 66, 96, 130,
+    ]);
+    const fetchFn: typeof fetch = async () =>
+      new Response(png, { headers: { 'Content-Type': 'image/png' } });
+
+    await inlineSvgImages(svg, fetchFn);
+    expect(image.getAttribute('href')).toMatch(/^data:image\/png/);
+    svg.remove();
   });
 });

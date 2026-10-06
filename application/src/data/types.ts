@@ -9,7 +9,11 @@ export interface DiagramNode {
 export interface DiagramGroup {
   id: string;
   name: string;
-  nodes: string[];
+  /** Direct member nodes. */
+  nodes?: string[];
+  /** Nested groups whose members are also members of this group. */
+  groups?: string[];
+  style?: string;
 }
 
 export interface DiagramEdge {
@@ -57,8 +61,10 @@ export interface StyleColors {
 
 export interface StyleLogo {
   type: 'patternfly' | 'url';
-  /** PatternFly icon export name (e.g. CubeIcon) or an absolute/relative URL */
+  /** PatternFly icon export name, or a relative/absolute URL for `type: url` (light theme). */
   value: string;
+  /** Optional dark-theme URL when `type` is `url`. Falls back to `value`. */
+  valueDark?: string;
 }
 
 export interface StyleEdgeOptions {
@@ -71,6 +77,21 @@ export interface StyleFont {
   size: number;
 }
 
+export type BoxTextLocation = 'in' | 'out';
+export type BoxTextAlign = 'top' | 'bottom' | 'left' | 'right';
+export type BoxTextJustify = 'left' | 'center' | 'right';
+
+/** Group-box title placement: inside or outside, which side, and along-edge alignment. */
+export interface StyleBoxText {
+  location?: BoxTextLocation;
+  align?: BoxTextAlign;
+  justify?: BoxTextJustify;
+}
+
+export interface StyleBox {
+  text?: StyleBoxText;
+}
+
 export interface StyleDefinition {
   id: string;
   kind: StyleKind;
@@ -81,6 +102,7 @@ export interface StyleDefinition {
   };
   font?: StyleFont;
   edge?: StyleEdgeOptions;
+  box?: StyleBox;
 }
 
 export function normalizeDependencies(

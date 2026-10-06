@@ -74,6 +74,11 @@ export function ArchitectureDetailPage() {
     for (const edge of architecture.diagram.edges) {
       ids.add(edge.style);
     }
+    for (const group of architecture.diagram.groups ?? []) {
+      if (group.style) {
+        ids.add(group.style);
+      }
+    }
     return styles.filter((s) => ids.has(s.id));
   }, [architecture, styles]);
 

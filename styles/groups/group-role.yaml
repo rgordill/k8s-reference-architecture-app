@@ -1,0 +1,17 @@
+id: group-role
+kind: group
+colors:
+  light:
+    fill: 'rgba(0, 0, 0, 0.03)'
+    stroke: '#8a8d90'
+    text: '#151515'
+  dark:
+    fill: 'rgba(255, 255, 255, 0.03)'
+    stroke: '#6a6e73'
+    text: '#f0f0f0'
+font:
+  family: 'RedHatText, Overpass, sans-serif'
+  size: 11
+edge:
+  strokeWidth: 1.5
+  dashArray: '2 4'

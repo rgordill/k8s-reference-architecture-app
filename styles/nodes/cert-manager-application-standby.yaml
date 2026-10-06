@@ -1,0 +1,21 @@
+id: cert-manager-application-standby
+kind: node
+logo:
+  type: url
+  # Official CNCF cert-manager icon (https://github.com/cncf/artwork)
+  value: https://raw.githubusercontent.com/cncf/artwork/main/projects/cert-manager/icon/color/cert-manager-icon-color.svg
+colors:
+  light:
+    fill: '#f3e8ff'
+    stroke: '#7c3aed'
+    text: '#151515'
+  dark:
+    fill: '#2e1065'
+    stroke: '#c4b5fd'
+    text: '#f0f0f0'
+font:
+  family: 'RedHatText, Overpass, sans-serif'
+  size: 11
+edge:
+  strokeWidth: 2
+  dashArray: '6 4'

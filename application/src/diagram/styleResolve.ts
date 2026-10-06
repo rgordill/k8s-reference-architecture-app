@@ -1,4 +1,8 @@
 import type {
+  BoxTextAlign,
+  BoxTextJustify,
+  BoxTextLocation,
+  StyleBoxText,
   StyleColors,
   StyleDefinition,
   StyleEdgeOptions,
@@ -14,6 +18,11 @@ const DEFAULT_NODE_COLORS: Record<ThemeMode, StyleColors> = {
 const DEFAULT_EDGE_COLORS: Record<ThemeMode, StyleColors> = {
   light: { fill: 'transparent', stroke: '#6a6e73', text: '#151515' },
   dark: { fill: 'transparent', stroke: '#b8bbbe', text: '#f0f0f0' },
+};
+
+const DEFAULT_GROUP_COLORS: Record<ThemeMode, StyleColors> = {
+  light: { fill: 'rgba(0,0,0,0.03)', stroke: '#8a8d90', text: '#151515' },
+  dark: { fill: 'rgba(255,255,255,0.03)', stroke: '#6a6e73', text: '#f0f0f0' },
 };
 
 const DEFAULT_FONT: StyleFont = {
@@ -33,7 +42,13 @@ export function resolveColors(
   if (style?.colors?.[theme]) {
     return style.colors[theme];
   }
-  return kind === 'edge' ? DEFAULT_EDGE_COLORS[theme] : DEFAULT_NODE_COLORS[theme];
+  if (kind === 'edge') {
+    return DEFAULT_EDGE_COLORS[theme];
+  }
+  if (kind === 'group') {
+    return DEFAULT_GROUP_COLORS[theme];
+  }
+  return DEFAULT_NODE_COLORS[theme];
 }
 
 export function resolveFont(style: StyleDefinition | undefined): StyleFont {
@@ -44,6 +59,40 @@ export function resolveEdgeOptions(
   style: StyleDefinition | undefined,
 ): StyleEdgeOptions {
   return { ...DEFAULT_EDGE, ...style?.edge };
+}
+
+const BOX_LOCATIONS = new Set<BoxTextLocation>(['in', 'out']);
+const BOX_ALIGNS = new Set<BoxTextAlign>(['top', 'bottom', 'left', 'right']);
+const BOX_JUSTIFIES = new Set<BoxTextJustify>(['left', 'center', 'right']);
+
+export interface ResolvedBoxText {
+  location: BoxTextLocation;
+  align: BoxTextAlign;
+  justify: BoxTextJustify;
+}
+
+/**
+ * Group title placement. Missing fields fall back to outside, with side
+ * from the group's orientation (vertical → left, horizontal → top) and
+ * start-edge justify.
+ */
+export function resolveBoxText(
+  style: StyleDefinition | undefined,
+  orientation: 'horizontal' | 'vertical' = 'horizontal',
+): ResolvedBoxText {
+  const raw: StyleBoxText = style?.box?.text ?? {};
+  const location = BOX_LOCATIONS.has(raw.location as BoxTextLocation)
+    ? (raw.location as BoxTextLocation)
+    : 'out';
+  const align = BOX_ALIGNS.has(raw.align as BoxTextAlign)
+    ? (raw.align as BoxTextAlign)
+    : orientation === 'vertical'
+      ? 'left'
+      : 'top';
+  const justify = BOX_JUSTIFIES.has(raw.justify as BoxTextJustify)
+    ? (raw.justify as BoxTextJustify)
+    : 'left';
+  return { location, align, justify };
 }
 
 /** Map of known PatternFly icon names to inline SVG path data (viewBox 0 0 1024 1024 scaled to 0 0 24 24 via transform). */
@@ -58,14 +107,28 @@ const PF_ICON_PATHS: Record<string, string> = {
     'M512 128c-70.7 0-128 57.3-128 128s57.3 128 128 128 128-57.3 128-128-57.3-128-128-128zm0 192c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64zM256 576c-70.7 0-128 57.3-128 128s57.3 128 128 128 128-57.3 128-128-57.3-128-128-128zm0 192c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64zm512-192c-70.7 0-128 57.3-128 128s57.3 128 128 128 128-57.3 128-128-57.3-128-128-128zm0 192c-35.3 0-64-28.7-64-64s28.7-64 64-64 64 28.7 64 64-28.7 64-64 64zM390.6 512.9l-90.5 90.5 45.3 45.3 90.5-90.5-45.3-45.3zm333.3 0l-45.3 45.3 90.5 90.5 45.3-45.3-90.5-90.5z',
 };
 
-export function resolveLogoHref(style: StyleDefinition | undefined): {
+export function resolveAssetUrl(value: string): string {
+  if (/^(https?:)?\/\//.test(value) || value.startsWith('data:')) {
+    return value;
+  }
+  const base = import.meta.env.BASE_URL ?? '/';
+  const prefix = base.endsWith('/') ? base : `${base}/`;
+  return `${prefix}${value.replace(/^\//, '')}`;
+}
+
+export function resolveLogoHref(
+  style: StyleDefinition | undefined,
+  theme: ThemeMode = 'light',
+): {
   type: 'patternfly' | 'url';
   value: string;
   path?: string;
 } {
   const logo = style?.logo;
   if (logo?.type === 'url' && logo.value) {
-    return { type: 'url', value: logo.value };
+    const raw =
+      theme === 'dark' && logo.valueDark ? logo.valueDark : logo.value;
+    return { type: 'url', value: resolveAssetUrl(raw) };
   }
   const name = logo?.value || 'CubeIcon';
   return {

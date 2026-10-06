@@ -1,5 +1,12 @@
 import type { Architecture, StyleDefinition } from './types';
 import { normalizeDependencies } from './types';
+import {
+  collectGroupNodeIds,
+  directGroupNodeIds,
+  groupByIdMap,
+  nestedGroupCycles,
+  nestedGroupIds,
+} from './groupMembership';
 
 const DEPLOY_TAGS = new Set(['deploy:helm', 'deploy:operator', 'deploy:both']);
 
@@ -89,12 +96,59 @@ export function validateArchitecture(
       report(`group id ${group.id} collides with a node id`);
     }
     groupIds.add(group.id);
+  }
+
+  for (const group of groups) {
+    if (!group.id) {
+      continue;
+    }
     if (!group.name?.trim()) {
       report(`group ${group.id} is missing name`);
     }
-    for (const member of group.nodes ?? []) {
-      if (!nodeIds.has(member)) {
+    if (!group.style) {
+      report(`group ${group.id} is missing style`);
+    } else if (!styleById.has(group.style)) {
+      report(`group ${group.id} references unknown style ${group.style}`);
+    }
+    const directNodes = directGroupNodeIds(group);
+    const nested = nestedGroupIds(group);
+    if (directNodes.length === 0 && nested.length === 0) {
+      report(`group ${group.id} has no nodes or nested groups`);
+    }
+    for (const member of directNodes) {
+      if (groupIds.has(member)) {
+        report(
+          `group ${group.id} lists ${member} under nodes; nested groups belong in groups`,
+        );
+      } else if (!nodeIds.has(member)) {
         report(`group ${group.id} references unknown node ${member}`);
+      }
+    }
+    for (const childId of nested) {
+      if (childId === group.id) {
+        report(`group ${group.id} nests itself`);
+      } else if (nodeIds.has(childId)) {
+        report(
+          `group ${group.id} lists node ${childId} under groups; nodes belong in nodes`,
+        );
+      } else if (!groupIds.has(childId)) {
+        report(`group ${group.id} references unknown group ${childId}`);
+      }
+    }
+  }
+
+  const groupsById = groupByIdMap(groups);
+  for (const cycle of nestedGroupCycles(groups)) {
+    report(`group nesting cycle ${cycle.join(' -> ')}`);
+  }
+  for (const group of groups) {
+    if (!group.id) {
+      continue;
+    }
+    if (collectGroupNodeIds(group.id, groupsById, nodeIds).length === 0) {
+      const nested = nestedGroupIds(group);
+      if (nested.length > 0) {
+        report(`group ${group.id} has no descendant nodes`);
       }
     }
   }

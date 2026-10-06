@@ -64,7 +64,7 @@ export function ArchitectureDiagram({
   const onExportSvg = () => {
     const svg = handleRef.current?.svg;
     if (!svg) return;
-    exportSvg(svg, `${exportBasename}.svg`);
+    void exportSvg(svg, `${exportBasename}.svg`);
   };
 
   const onExportPng = () => {

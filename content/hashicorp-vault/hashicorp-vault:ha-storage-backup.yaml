@@ -1,12 +1,11 @@
 ---
-- name: 'hashicorp-vault:ha-storage'
+- name: 'hashicorp-vault:ha-storage-backup'
   description: |-
     A high availability Vault server with CSI block storage. Replicas are synchronized
     using Raft protocol. Each Vault instance and its CSI volume are deployed in a
     separate zone. Transparent load balancing is achieved using Kubernetes Services.
-    Prometheus objects are used to scrape metrics from the Vault servers. Can be used for
-    high availability testing or production environments with external backup/restore
-    capabilities.
+    Prometheus objects are used to scrape metrics from the Vault servers. Backup and restore
+    is configured with an S3-compatible storage backend.
   characteristics:
   - Three HashiCorp Vault servers.
   - CSI storage.
@@ -15,16 +14,15 @@
   - Transparent load balancing.
   - Prometheus objects to scrape metrics.
   usage:
-  - High availability testing
-  - Limited Production
+  - Production
   tags:
   - hashicorp-vault
-  - production
   - high-availability
   - storage
   - deploy:helm
   dependencies:
   - ::csi:block-storage
+  - ::s3
   - prometheus
   - cert-manager
   diagram:

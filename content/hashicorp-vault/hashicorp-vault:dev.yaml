@@ -16,8 +16,7 @@
   - Proof-of-Concept
   - Small Lab
   tags:
-  - vault
-  - hashicorp
+  - hashicorp-vault
   - development
   - deploy:helm
   dependencies: {}

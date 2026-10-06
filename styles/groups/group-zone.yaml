@@ -1,0 +1,22 @@
+id: group-zone
+kind: group
+colors:
+  light:
+    fill: 'rgba(0, 102, 204, 0.06)'
+    stroke: '#0066cc'
+    text: '#151515'
+  dark:
+    fill: 'rgba(146, 197, 249, 0.08)'
+    stroke: '#92c5f9'
+    text: '#f0f0f0'
+font:
+  family: 'RedHatText, Overpass, sans-serif'
+  size: 11
+edge:
+  strokeWidth: 2
+  dashArray: '6 3'
+box:
+  text:
+    location: out
+    align: bottom
+    justify: center

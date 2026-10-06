@@ -1,27 +1,22 @@
 ---
-- name: 'cert-manager:openshift-ha'
+- name: 'cert-manager:ha'
   description: |-
-    Highly available cert-manager on OpenShift deployed by the cert-manager Operator.
+    Highly available cert-manager deployed by the cert-manager operator.
     Replica counts: controller 2, CA injector 2, webhook 3 (minimum for admission
     availability). The operator manages operand lifecycle with dotted manage edges.
   characteristics:
-  - cert-manager Operator (OLM-managed) for install and lifecycle.
-  - Two cert-manager controller replicas.
+  - cert-manager operator for install and lifecycle.
+  - Two cert-manager controller replicas in active/passive mode.
   - Two CA injector replicas.
   - At least three validating/mutating webhook replicas.
-  - OpenShift-integrated high-availability deployment.
+  version: '1.20'
   usage:
-  - Certificate management
-  - Platform services
-  - OpenShift
-  - Production
   - High availability testing
+  - Production
   tags:
   - cert-manager
-  - openshift
-  - certificates
-  - tls
   - high-availability
+  - production
   - deploy:operator
   dependencies: {}
   components:
@@ -36,54 +31,73 @@
     nodes:
     - id: cert-manager-operator
       name: Operator
-      style: cert-manager-application
+      style: cert-manager-operator
     - id: cert-manager-0
-      name: Controller-0
+      name: 'Controller~0~'
       style: cert-manager-application
     - id: cert-manager-1
-      name: Controller-1
-      style: cert-manager-application
+      name: 'Controller~1~'
+      style: cert-manager-application-standby
     - id: cert-manager-ca-injector-0
-      name: CA Injector-0
+      name: 'CA Injector~0~'
       style: cert-manager-application
     - id: cert-manager-ca-injector-1
-      name: CA Injector-1
-      style: cert-manager-application
+      name: 'CA Injector~1~'
+      style: cert-manager-application-standby
     - id: cert-manager-webhook-0
-      name: Webhook-0
+      name: 'Webhook~0~'
       style: cert-manager-application
     - id: cert-manager-webhook-1
-      name: Webhook-1
+      name: 'Webhook~1~'
       style: cert-manager-application
     - id: cert-manager-webhook-2
-      name: Webhook-2
+      name: 'Webhook~2~'
       style: cert-manager-application
     groups:
     - id: group-controllers
       name: Controllers
+      style: group-role
       nodes:
       - cert-manager-0
       - cert-manager-1
     - id: group-cainjectors
       name: CA Injectors
+      style: group-role
       nodes:
       - cert-manager-ca-injector-0
       - cert-manager-ca-injector-1
     - id: group-webhooks
       name: Webhooks
+      style: group-role
       nodes:
       - cert-manager-webhook-0
       - cert-manager-webhook-1
       - cert-manager-webhook-2
     - id: group-operands
       name: Operands
+      style: group-role
+      groups:
+      - group-controllers
+      - group-cainjectors
+      - group-webhooks
+    - id: zone-0
+      name: 'Zone~0~'
+      style: group-zone
       nodes:
       - cert-manager-0
-      - cert-manager-1
       - cert-manager-ca-injector-0
-      - cert-manager-ca-injector-1
       - cert-manager-webhook-0
+    - id: zone-1
+      name: 'Zone~1~'
+      style: group-zone
+      nodes:
+      - cert-manager-1
+      - cert-manager-ca-injector-1
       - cert-manager-webhook-1
+    - id: zone-2
+      name: 'Zone~2~'
+      style: group-zone
+      nodes:
       - cert-manager-webhook-2
     edges:
     - source: cert-manager-operator
