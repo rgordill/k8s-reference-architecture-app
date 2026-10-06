@@ -41,6 +41,12 @@ export function validateArchitecture(
   if (!Array.isArray(architecture.usage)) {
     report('usage must be a list');
   }
+  if (
+    architecture.documentation != null &&
+    !Array.isArray(architecture.documentation)
+  ) {
+    report('documentation must be a list');
+  }
 
   const deployTags = (architecture.tags ?? []).filter((t) => t.startsWith('deploy:'));
   if (deployTags.length > 1) {

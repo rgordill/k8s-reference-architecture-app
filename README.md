@@ -70,8 +70,10 @@ YAML files whose names contain `:` (for example `hashicorp-vault:dev.yaml`) are 
 The workflow [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml) builds and deploys on pushes to `main`/`master`.
 
 1. Push this repository to GitHub.
-2. Under **Settings → Pages**, set the source to **GitHub Actions**.
-3. After the workflow succeeds, the site is available at `https://<user>.github.io/<repo>/`.
+2. Under **Settings → Pages**, set the source to **GitHub Actions** (not “Deploy from a branch”). Branch deploys publish the README instead of the Vite app.
+3. After the workflow succeeds, the app is at `https://<user>.github.io/<repo>/`.
+
+The git folder `application/` is only the source tree. It is not a path on the Pages site. `https://<user>.github.io/<repo>/application/` is rewritten to the app via the SPA `404.html` fallback.
 
 Override the Vite base path with `VITE_BASE` if needed (the workflow sets it from the repository name).
 

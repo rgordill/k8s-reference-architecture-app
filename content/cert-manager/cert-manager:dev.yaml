@@ -24,6 +24,8 @@
   - cert-manager-ca-injector
   - cert-manager-webhook
   source:
+  - https://github.com/cert-manager/cert-manager
+  documentation:
   - https://cert-manager.io/docs/
   - https://docs.openshift.com/container-platform/latest/security/cert_manager_operator/index.html
   diagram:

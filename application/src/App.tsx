@@ -17,6 +17,8 @@ export function App() {
               path="architectures/:name"
               element={<ArchitectureDetailPage />}
             />
+            <Route path="application" element={<Navigate to="/" replace />} />
+            <Route path="application/*" element={<Navigate to="/" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>

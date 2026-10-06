@@ -25,6 +25,8 @@
   - cert-manager-ca-injector
   - cert-manager-webhook
   source:
+  - https://github.com/cert-manager/cert-manager
+  documentation:
   - https://cert-manager.io/docs/installation/best-practice/#high-availability
   - https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/security_and_compliance/cert-manager-operator-for-red-hat-openshift
   diagram:

@@ -21,6 +21,25 @@ describe('parseArchitectureFile', () => {
     expect(arches[0].name).toBe('sample:dev');
     expect(arches[0].diagram.nodes).toHaveLength(1);
   });
+
+  it('parses documentation links', () => {
+    const arches = parseArchitectureFile(`
+- name: sample:docs
+  description: Sample
+  characteristics: []
+  usage: []
+  dependencies: {}
+  documentation:
+  - https://example.com/docs
+  diagram:
+    nodes:
+    - id: a
+      name: A
+      style: node-style
+    edges: []
+`);
+    expect(arches[0].documentation).toEqual(['https://example.com/docs']);
+  });
 });
 
 describe('parseStyleFile', () => {

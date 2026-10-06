@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { fixturesPlugin, repoRoot } from './vite-plugin-fixtures';
 import { logosPlugin } from './vite-plugin-logos';
+import { spaFallbackPlugin } from './vite-plugin-spa-fallback';
 
 const applicationDir = path.dirname(fileURLToPath(import.meta.url));
 const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] ?? 'k8s-reference-architecture-app';
@@ -13,7 +14,7 @@ const base =
 
 export default defineConfig({
   base,
-  plugins: [react(), fixturesPlugin(), logosPlugin()],
+  plugins: [react(), fixturesPlugin(), logosPlugin(), spaFallbackPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(applicationDir, 'src'),

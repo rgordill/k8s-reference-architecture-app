@@ -39,6 +39,7 @@ export interface Architecture {
   dependencies: string[] | Record<string, never>;
   components?: string[];
   source?: string[];
+  documentation?: string[];
   additionalProperties?: Record<string, string> | Array<Record<string, string>>;
   diagram: Diagram;
 }

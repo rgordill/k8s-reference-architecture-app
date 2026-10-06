@@ -148,6 +148,23 @@ export function ArchitectureMeta({ architecture }: { architecture: Architecture 
           </DescriptionListGroup>
         ) : null}
 
+        {architecture.documentation && architecture.documentation.length > 0 ? (
+          <DescriptionListGroup>
+            <DescriptionListTerm>Documentation</DescriptionListTerm>
+            <DescriptionListDescription>
+              <List isPlain>
+                {architecture.documentation.map((item) => (
+                  <ListItem key={item}>
+                    <a href={item} target="_blank" rel="noreferrer">
+                      {item}
+                    </a>
+                  </ListItem>
+                ))}
+              </List>
+            </DescriptionListDescription>
+          </DescriptionListGroup>
+        ) : null}
+
         {additional.length > 0 ? (
           <DescriptionListGroup>
             <DescriptionListTerm>Additional</DescriptionListTerm>
