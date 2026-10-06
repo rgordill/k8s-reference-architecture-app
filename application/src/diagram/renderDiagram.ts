@@ -413,8 +413,8 @@ export function renderDiagram(options: RenderDiagramOptions): DiagramRenderHandl
   };
 }
 
-function appendMarkdownSpans(
-  line: d3.Selection<SVGTSpanElement, unknown, null, undefined>,
+function appendMarkdownSpans<Datum>(
+  line: d3.Selection<SVGTSpanElement, Datum, null | SVGGElement, undefined>,
   spans: MarkdownSpan[],
   fontSize: number,
   fontFamily: string,
