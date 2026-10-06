@@ -1,0 +1,14 @@
+id: operator-manage
+kind: edge
+colors:
+  light:
+    fill: 'transparent'
+    stroke: '#7c3aed'
+    text: '#151515'
+  dark:
+    fill: 'transparent'
+    stroke: '#c4b5fd'
+    text: '#f0f0f0'
+edge:
+  strokeWidth: 2
+  dashArray: '4 4'

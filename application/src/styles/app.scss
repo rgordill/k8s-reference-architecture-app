@@ -1,0 +1,42 @@
+@import '@patternfly/patternfly/patternfly.css';
+@import '@patternfly/patternfly/patternfly-addons.css';
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+.app-diagram-card {
+  min-height: 420px;
+  height: 100%;
+}
+
+.app-diagram-host {
+  width: 100%;
+  height: 480px;
+  min-height: 360px;
+  border: 1px solid var(--pf-t--global--border--color--default);
+  border-radius: var(--pf-t--global--border--radius--small);
+  background: var(--pf-t--global--background--color--primary--default);
+  overflow: hidden;
+}
+
+.app-diagram-host svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+
+.app-diagram-host svg:active {
+  cursor: grabbing;
+}
+
+.app-diagram-host .node {
+  cursor: default;
+}
+
+.app-architecture-card {
+  height: 100%;
+}

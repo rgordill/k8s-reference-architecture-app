@@ -1,0 +1,65 @@
+---
+- name: 'cert-manager:openshift-dev'
+  description: |-
+    Single-replica cert-manager on OpenShift deployed by the cert-manager Operator.
+    Includes the operator plus one controller, CA injector, and webhook that issue
+    and renew TLS certificates as Kubernetes resources.
+  characteristics:
+  - cert-manager Operator (OLM-managed) for install and lifecycle.
+  - cert-manager controller.
+  - CA injector for injecting CA bundles.
+  - Validating/mutating admission webhook.
+  - OpenShift-integrated deployment.
+  - Single replica per operand (development / non-HA).
+  usage:
+  - Certificate management
+  - Platform services
+  - OpenShift
+  - Development
+  tags:
+  - cert-manager
+  - openshift
+  - certificates
+  - tls
+  - development
+  - deploy:operator
+  dependencies: {}
+  components:
+  - cert-manager-operator
+  - cert-manager
+  - cert-manager-ca-injector
+  - cert-manager-webhook
+  source:
+  - https://cert-manager.io/docs/
+  - https://docs.openshift.com/container-platform/latest/security/cert_manager_operator/index.html
+  diagram:
+    nodes:
+    - id: cert-manager-operator
+      name: Operator
+      style: cert-manager-application
+    - id: cert-manager
+      name: cert-manager
+      style: cert-manager-application
+    - id: cert-manager-ca-injector
+      name: CA Injector
+      style: cert-manager-application
+    - id: cert-manager-webhook
+      name: Webhook
+      style: cert-manager-application
+    groups:
+    - id: group-operands
+      name: Operands
+      nodes:
+      - cert-manager
+      - cert-manager-ca-injector
+      - cert-manager-webhook
+    edges:
+    - source: cert-manager-operator
+      target: group-operands
+      style: operator-manage
+    - source: cert-manager-webhook
+      target: cert-manager
+      style: cert-manager-connect
+    - source: cert-manager-ca-injector
+      target: cert-manager
+      style: cert-manager-connect

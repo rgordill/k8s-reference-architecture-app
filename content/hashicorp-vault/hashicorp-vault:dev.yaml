@@ -1,0 +1,42 @@
+---
+- name: 'hashicorp-vault:dev'
+  version: '2.x'
+  description: |-
+    A single HashiCorp Vault server for development, testing, and proof-of-concepts.
+    Vault Agent Injector is used to inject the Vault agent into the pod if it is needed.
+  characteristics:
+  - Minimal footprint.
+  - One HashiCorp Vault server, no high availability.
+  - Ephemeral storage.
+  - Developer mode.
+  - No TLS encryption.
+  usage:
+  - Development
+  - Functional Testing
+  - Proof-of-Concept
+  - Small Lab
+  tags:
+  - vault
+  - hashicorp
+  - development
+  - deploy:helm
+  dependencies: {}
+  components:
+  - vault
+  - vault-agent-injector
+  source:
+  - https://github.com/hashicorp/vault-helm
+  additionalProperties:
+  - openshift-gitops: https://github.com/rgordill/architectures/tree/main/hashicorp-vault/overlays/dev
+  diagram:
+    nodes:
+    - id: hashicorp-vault-0
+      name: Vault-0
+      style: hashicorp-vault-application
+    - id: hashicorp-vault-agent-injector
+      name: Vault Agent Injector
+      style: hashicorp-vault-application
+    edges:
+    - source: hashicorp-vault-agent-injector
+      target: hashicorp-vault-0
+      style: hashicorp-vault-application-connect

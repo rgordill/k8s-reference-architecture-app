@@ -1,0 +1,17 @@
+id: csi-block-storage
+kind: node
+logo:
+  type: patternfly
+  value: DatabaseIcon
+colors:
+  light:
+    fill: '#f2f9f2'
+    stroke: '#3d7317'
+    text: '#151515'
+  dark:
+    fill: '#1e3a1e'
+    stroke: '#bde0b0'
+    text: '#f0f0f0'
+font:
+  family: 'RedHatText, Overpass, sans-serif'
+  size: 12

@@ -1,0 +1,13 @@
+id: hashicorp-vault-application-connect
+kind: edge
+colors:
+  light:
+    fill: 'transparent'
+    stroke: '#0066cc'
+    text: '#151515'
+  dark:
+    fill: 'transparent'
+    stroke: '#92c5f9'
+    text: '#f0f0f0'
+edge:
+  strokeWidth: 2

@@ -1,0 +1,98 @@
+---
+- name: 'hashicorp-vault:ha-storage'
+  description: |-
+    A high availability Vault server with CSI block storage. Replicas are synchronized
+    using Raft protocol. Each Vault instance and its CSI volume are deployed in a
+    separate zone. Transparent load balancing is achieved using Kubernetes Services.
+    Prometheus objects are used to scrape metrics from the Vault servers. Can be used for
+    high availability testing or production environments with external backup/restore
+    capabilities.
+  characteristics:
+  - Three HashiCorp Vault servers.
+  - CSI storage.
+  - One Vault instance and CSI volume per zone.
+  - Raft cluster.
+  - Transparent load balancing.
+  - Prometheus objects to scrape metrics.
+  usage:
+  - High availability testing
+  - Limited Production
+  tags:
+  - vault
+  - hashicorp
+  - high-availability
+  - storage
+  - deploy:helm
+  dependencies:
+  - ::csi:block-storage
+  - prometheus
+  - cert-manager
+  diagram:
+    nodes:
+    - id: vault-0
+      name: Vault-0
+      style: vault-application
+    - id: vault-1
+      name: Vault-1
+      style: vault-application
+    - id: vault-2
+      name: Vault-2
+      style: vault-application
+    - id: csi-block-storage-0
+      name: Storage-0
+      style: csi-block-storage
+    - id: csi-block-storage-1
+      name: Storage-1
+      style: csi-block-storage
+    - id: csi-block-storage-2
+      name: Storage-2
+      style: csi-block-storage
+    groups:
+    # Logical role groups (a node can belong to more than one group)
+    - id: group-vault
+      name: Vault
+      nodes:
+      - vault-0
+      - vault-1
+      - vault-2
+    - id: group-storage
+      name: Storage
+      nodes:
+      - csi-block-storage-0
+      - csi-block-storage-1
+      - csi-block-storage-2
+    # Failure-domain / placement groups
+    - id: zone-0
+      name: Zone-0
+      nodes:
+      - vault-0
+      - csi-block-storage-0
+    - id: zone-1
+      name: Zone-1
+      nodes:
+      - vault-1
+      - csi-block-storage-1
+    - id: zone-2
+      name: Zone-2
+      nodes:
+      - vault-2
+      - csi-block-storage-2
+    edges:
+    - source: vault-0
+      target: vault-1
+      style: raft-cluster
+    - source: vault-0
+      target: vault-2
+      style: raft-cluster
+    - source: vault-1
+      target: vault-2
+      style: raft-cluster
+    - source: vault-0
+      target: csi-block-storage-0
+      style: csi-block-storage
+    - source: vault-1
+      target: csi-block-storage-1
+      style: csi-block-storage
+    - source: vault-2
+      target: csi-block-storage-2
+      style: csi-block-storage

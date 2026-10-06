@@ -1,0 +1,14 @@
+id: raft-cluster
+kind: edge
+colors:
+  light:
+    fill: 'transparent'
+    stroke: '#6a6e73'
+    text: '#151515'
+  dark:
+    fill: 'transparent'
+    stroke: '#b8bbbe'
+    text: '#f0f0f0'
+edge:
+  strokeWidth: 2
+  dashArray: '6 4'

@@ -1,0 +1,17 @@
+id: hashicorp-vault-application
+kind: node
+logo:
+  type: patternfly
+  value: LockIcon
+colors:
+  light:
+    fill: '#e7f1fa'
+    stroke: '#0066cc'
+    text: '#151515'
+  dark:
+    fill: '#1b3a55'
+    stroke: '#92c5f9'
+    text: '#f0f0f0'
+font:
+  family: 'RedHatText, Overpass, sans-serif'
+  size: 12
