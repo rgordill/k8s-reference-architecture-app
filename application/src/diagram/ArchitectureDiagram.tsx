@@ -73,11 +73,16 @@ export function ArchitectureDiagram({
     void exportPng(svg, `${exportBasename}.png`);
   };
 
+  const onFitView = () => {
+    handleRef.current?.fitView();
+  };
+
   return (
     <div>
       <ExportToolbar
         onExportSvg={onExportSvg}
         onExportPng={onExportPng}
+        onFitView={onFitView}
         disabled={!ready}
       />
       <div className="app-diagram-host" ref={hostRef} data-testid="diagram-host" />

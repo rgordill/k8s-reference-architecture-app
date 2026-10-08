@@ -3,6 +3,8 @@ export type ThemeMode = 'light' | 'dark';
 export interface DiagramNode {
   id: string;
   name: string;
+  /** Optional component id shown as the node tooltip. */
+  component?: string;
   style: string;
 }
 
@@ -28,6 +30,19 @@ export interface Diagram {
   edges: DiagramEdge[];
 }
 
+export interface ArchitectureSizingComponent {
+  name: string;
+  replicas: number;
+  memory: string;
+  cpu: string;
+}
+
+export interface ArchitectureSizing {
+  name: string;
+  description?: string;
+  components: ArchitectureSizingComponent[];
+}
+
 export interface Architecture {
   name: string;
   version?: string;
@@ -40,6 +55,12 @@ export interface Architecture {
   components?: string[];
   source?: string[];
   documentation?: string[];
+  /** Optional resource sizing profiles (one table per name). */
+  sizing?: ArchitectureSizing[] | Array<{
+    name: string;
+    description?: string;
+    components?: Array<Record<string, { replicas?: number; memory?: string; cpu?: string }>>;
+  }>;
   additionalProperties?: Record<string, string> | Array<Record<string, string>>;
   diagram: Diagram;
 }

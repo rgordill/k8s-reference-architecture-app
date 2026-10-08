@@ -9,6 +9,15 @@ export {
   normalizeAdditionalProperties,
 } from './types';
 export {
+  buildSizingTable,
+  collectSizingComponents,
+  formatCpuMillicores,
+  formatMemoryBytes,
+  normalizeSizing,
+  parseCpuMillicores,
+  parseMemoryBytes,
+} from './sizing';
+export {
   filterArchitectures,
   collectFilterOptions,
   matchesNamePattern,

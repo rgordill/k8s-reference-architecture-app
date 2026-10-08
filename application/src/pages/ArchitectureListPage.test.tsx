@@ -23,14 +23,16 @@ describe('ArchitectureListPage', () => {
     });
   });
 
-  it('filters by name query param pattern', async () => {
+  it('filters by name query param substring', async () => {
     const summaries = await architectureRepository.list();
     const prefix = summaries[0].name.split(':')[0];
-    const matching = summaries.filter((item) => item.name.startsWith(`${prefix}:`) || item.name === prefix);
+    const matching = summaries.filter((item) =>
+      item.name.toLowerCase().includes(prefix.toLowerCase()),
+    );
     const excluded = summaries.find((item) => !matching.some((m) => m.name === item.name));
 
     render(
-      <MemoryRouter initialEntries={[`/?name=${encodeURIComponent(`${prefix}:*`)}`]}>
+      <MemoryRouter initialEntries={[`/?name=${encodeURIComponent(prefix)}`]}>
         <ArchitectureListPage />
       </MemoryRouter>,
     );

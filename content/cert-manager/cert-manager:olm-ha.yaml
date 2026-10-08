@@ -1,14 +1,14 @@
 ---
-- name: 'cert-manager:ha'
+- name: 'cert-manager:olm:ha'
   description: |-
     Highly available cert-manager deployed by the cert-manager operator.
-    Replica counts: controller 2, CA injector 2, webhook 3 (minimum for admission
-    availability). The operator manages operand lifecycle with dotted manage edges.
+    Replica counts: controller 2 (active/passive), CA injector 2 (active/passive), 
+    webhook 3 (minimum for multi-zone availability). The webhook replicas allow
+    a zone outage to be tolerated, without the risk of only one replica left in
+    that situation. The operator manages operand lifecycle.
   characteristics:
-  - cert-manager operator for install and lifecycle.
-  - Two cert-manager controller replicas in active/passive mode.
-  - Two CA injector replicas.
-  - At least three validating/mutating webhook replicas.
+  - Operator-managed.
+  - High availability multi-zone.
   version: '1.20'
   usage:
   - High availability testing
@@ -27,33 +27,42 @@
   source:
   - https://github.com/cert-manager/cert-manager
   documentation:
+  - https://deepwiki.com/cert-manager/cert-manager/1.1-core-components
   - https://cert-manager.io/docs/installation/best-practice/#high-availability
   - https://docs.redhat.com/en/documentation/openshift_container_platform/latest/html/security_and_compliance/cert-manager-operator-for-red-hat-openshift
   diagram:
     nodes:
     - id: cert-manager-operator
       name: Operator
+      component: cert-manager-operator
       style: cert-manager-operator
     - id: cert-manager-0
       name: 'Controller~0~'
+      component: cert-manager
       style: cert-manager-application
     - id: cert-manager-1
       name: 'Controller~1~'
+      component: cert-manager
       style: cert-manager-application-standby
     - id: cert-manager-ca-injector-0
       name: 'CA Injector~0~'
+      component: cert-manager-ca-injector
       style: cert-manager-application
     - id: cert-manager-ca-injector-1
       name: 'CA Injector~1~'
+      component: cert-manager-ca-injector
       style: cert-manager-application-standby
     - id: cert-manager-webhook-0
       name: 'Webhook~0~'
+      component: cert-manager-webhook
       style: cert-manager-application
     - id: cert-manager-webhook-1
       name: 'Webhook~1~'
+      component: cert-manager-webhook
       style: cert-manager-application
     - id: cert-manager-webhook-2
       name: 'Webhook~2~'
+      component: cert-manager-webhook
       style: cert-manager-application
     groups:
     - id: group-controllers
@@ -110,28 +119,49 @@
       style: cert-manager-connect
     - source: cert-manager-webhook-0
       target: cert-manager-1
-      style: cert-manager-connect
+      style: cert-manager-connect-standby
     - source: cert-manager-webhook-1
       target: cert-manager-0
       style: cert-manager-connect
     - source: cert-manager-webhook-1
       target: cert-manager-1
-      style: cert-manager-connect
+      style: cert-manager-connect-standby
     - source: cert-manager-webhook-2
       target: cert-manager-0
       style: cert-manager-connect
     - source: cert-manager-webhook-2
       target: cert-manager-1
-      style: cert-manager-connect
+      style: cert-manager-connect-standby
     - source: cert-manager-ca-injector-0
       target: cert-manager-0
       style: cert-manager-connect
     - source: cert-manager-ca-injector-0
       target: cert-manager-1
-      style: cert-manager-connect
+      style: cert-manager-connect-standby
     - source: cert-manager-ca-injector-1
       target: cert-manager-0
-      style: cert-manager-connect
+      style: cert-manager-connect-standby
     - source: cert-manager-ca-injector-1
       target: cert-manager-1
-      style: cert-manager-connect
+      style: cert-manager-connect-standby
+  sizing:
+    - name: min
+      description: |-
+        Start up
+      components:
+      - cert-manager-operator:
+          replicas: 1
+          memory: 100Mi
+          cpu: 10m
+      - cert-manager:
+          replicas: 2
+          memory: 50Mi
+          cpu: 5m
+      - cert-manager-ca-injector:
+          replicas: 2
+          memory: 100Mi
+          cpu: 5m
+      - cert-manager-webhook:
+          replicas: 3
+          memory: 20Mi
+          cpu: 5m

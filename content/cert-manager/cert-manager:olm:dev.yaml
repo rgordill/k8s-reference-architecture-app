@@ -1,18 +1,16 @@
 ---
-- name: 'cert-manager:dev'
+- name: 'cert-manager:olm:dev'
   description: |-
     Single-replica cert-manager deployed by the cert-manager operator.
     Includes the operator plus one controller, CA injector, and webhook that issue
     and renew TLS certificates as Kubernetes resources.
   characteristics:
-  - cert-manager operator for install and lifecycle.
-  - cert-manager controller.
-  - CA injector for injecting CA bundles.
-  - Validating/mutating admission webhook.
-  - Single replica per operand (development / non-HA).
+  - Operator-managed.
+  - Single replica per operand.
   version: '1.20'
   usage:
   - Development
+  - Edge
   tags:
   - cert-manager
   - development
@@ -26,21 +24,26 @@
   source:
   - https://github.com/cert-manager/cert-manager
   documentation:
+  - https://deepwiki.com/cert-manager/cert-manager/1.1-core-components
   - https://cert-manager.io/docs/
   - https://docs.openshift.com/container-platform/latest/security/cert_manager_operator/index.html
   diagram:
     nodes:
     - id: cert-manager-operator
       name: Operator
+      component: cert-manager-operator
       style: cert-manager-operator
     - id: cert-manager
       name: Controller
+      component: cert-manager
       style: cert-manager-application
     - id: cert-manager-ca-injector
       name: CA Injector
+      component: cert-manager-ca-injector
       style: cert-manager-application
     - id: cert-manager-webhook
       name: Webhook
+      component: cert-manager-webhook
       style: cert-manager-application
     groups:
     - id: group-operands
@@ -60,3 +63,44 @@
     - source: cert-manager-ca-injector
       target: cert-manager
       style: cert-manager-connect
+  sizing:
+    - name: min
+      description: |-
+        Start up
+      components:
+      - cert-manager-operator:
+          replicas: 1
+          memory: 100Mi
+          cpu: 10m
+      - cert-manager:
+          replicas: 1
+          memory: 50Mi
+          cpu: 5m
+      - cert-manager-ca-injector:
+          replicas: 1
+          memory: 100Mi
+          cpu: 5m
+      - cert-manager-webhook:
+          replicas: 1
+          memory: 20Mi
+          cpu: 5m
+    - name: medium
+      description: |-
+        10 issuers, 1000 certs, 1000 renewals/hour
+      components:
+      - cert-manager-operator:
+          replicas: 1
+          memory: 100Mi
+          cpu: 10m
+      - cert-manager:
+          replicas: 1
+          memory: 250Mi
+          cpu: 500m
+      - cert-manager-ca-injector:
+          replicas: 1
+          memory: 125Mi
+          cpu: 10m
+      - cert-manager-webhook:
+          replicas: 1
+          memory: 30Mi
+          cpu: 10m

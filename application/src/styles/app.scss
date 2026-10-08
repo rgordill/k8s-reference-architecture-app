@@ -40,3 +40,46 @@ body,
 .app-architecture-card {
   height: 100%;
 }
+
+.app-sizing-tables {
+  width: 100%;
+}
+
+.app-sizing-table {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.app-sizing-table .pf-v6-c-table {
+  width: auto;
+}
+
+.app-sizing-table-title {
+  display: inline-block;
+  max-width: 100%;
+  cursor: help;
+}
+
+.app-sizing-aligned-table {
+  --app-sizing-row-height: 2.5rem;
+  table-layout: auto;
+}
+
+.app-sizing-aligned-table .pf-v6-c-table__tr {
+  height: var(--app-sizing-row-height);
+}
+
+.app-sizing-aligned-table .pf-v6-c-table__th,
+.app-sizing-aligned-table .pf-v6-c-table__td {
+  white-space: nowrap;
+  vertical-align: middle;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: none;
+}
+
+.app-sizing-aligned-table [data-label='Memory'] {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}

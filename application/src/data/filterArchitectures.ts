@@ -1,7 +1,7 @@
 import type { ArchitectureSummary } from './types';
 
 export interface ArchitectureFilters {
-  /** Glob/regex against architecture name (`*` → `.*`) */
+  /** Case-insensitive substring match against architecture name (`*` → `.*`) */
   name?: string;
   /** Case-insensitive exact match against a usage value */
   usage?: string;
@@ -11,14 +11,14 @@ export interface ArchitectureFilters {
 
 /**
  * Convert a dependency / name filter pattern to a RegExp.
- * Supports glob-style `*` wildcards (e.g. `cert-manager:*`).
+ * Matches as a substring (contain). Supports glob-style `*` wildcards.
  */
 export function patternToRegExp(pattern: string): RegExp {
   const trimmed = pattern.trim();
   const escaped = trimmed
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
     .replace(/\*/g, '.*');
-  return new RegExp(`^${escaped}$`, 'i');
+  return new RegExp(escaped, 'i');
 }
 
 export function matchesNamePattern(name: string, pattern: string): boolean {

@@ -119,6 +119,63 @@ describe('renderDiagram', () => {
     container.remove();
   });
 
+  it('shows component as a node tooltip title', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const handle = renderDiagram({
+      container,
+      diagram: {
+        nodes: [
+          {
+            id: 'a',
+            name: 'Operator',
+            component: 'cert-manager-operator',
+            style: 'node-a',
+          },
+          { id: 'b', name: 'B', style: 'node-a' },
+        ],
+        edges: [],
+      },
+      styles: new Map(styles.map((s) => [s.id, s])),
+      theme: 'light',
+      width: 400,
+      height: 300,
+    });
+    expect(
+      handle.svg.querySelector('[data-id="a"] title')?.textContent,
+    ).toBe('cert-manager-operator');
+    expect(handle.svg.querySelector('[data-id="b"] title')).toBeNull();
+    handle.destroy();
+    container.remove();
+  });
+
+  it('fitView restores the centered transform after pan', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    Object.defineProperty(container, 'clientWidth', { value: 640 });
+    Object.defineProperty(container, 'clientHeight', { value: 400 });
+
+    const handle = renderDiagram({
+      container,
+      diagram,
+      styles: new Map(styles.map((s) => [s.id, s])),
+      theme: 'light',
+      width: 640,
+      height: 400,
+    });
+
+    const root = handle.svg.querySelector('.diagram-root');
+    const initial = root?.getAttribute('transform') ?? '';
+    root?.setAttribute('transform', 'translate(12,34) scale(0.5)');
+    expect(root?.getAttribute('transform')).not.toBe(initial);
+
+    handle.fitView();
+    expect(root?.getAttribute('transform')).toBe(initial);
+
+    handle.destroy();
+    container.remove();
+  });
+
   it('raises the icon when the label wraps to more lines', () => {
     const container = document.createElement('div');
     document.body.appendChild(container);

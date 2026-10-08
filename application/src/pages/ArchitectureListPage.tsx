@@ -124,7 +124,7 @@ export function ArchitectureListPage() {
                 <ToolbarItem>
                   <SearchInput
                     aria-label="Filter by name"
-                    placeholder="Filter by name (e.g. cert-manager:*)"
+                    placeholder="Filter by name (e.g. cert-manager)"
                     value={nameFilter}
                     onChange={(_event, value) => updateParam('name', value)}
                     onClear={() => updateParam('name', '')}

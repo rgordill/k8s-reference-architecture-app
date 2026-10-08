@@ -28,19 +28,22 @@ const items: ArchitectureSummary[] = [
 ];
 
 describe('patternToRegExp / matchesNamePattern', () => {
-  it('matches glob-style dependency patterns', () => {
+  it('matches substrings and glob-style wildcards', () => {
+    expect(matchesNamePattern('cert-manager:openshift-dev', 'cert-manager')).toBe(true);
+    expect(matchesNamePattern('cert-manager:openshift-dev', 'openshift')).toBe(true);
+    expect(matchesNamePattern('hashicorp-vault:dev', 'cert-manager')).toBe(false);
     expect(matchesNamePattern('cert-manager:openshift-dev', 'cert-manager:*')).toBe(true);
-    expect(matchesNamePattern('hashicorp-vault:dev', 'cert-manager:*')).toBe(false);
-    expect(patternToRegExp('cert-manager:openshift-dev').test('cert-manager:openshift-dev')).toBe(
-      true,
-    );
+    expect(patternToRegExp('manager:open').test('cert-manager:openshift-dev')).toBe(true);
   });
 });
 
 describe('filterArchitectures', () => {
-  it('filters by name pattern', () => {
-    const result = filterArchitectures(items, { name: 'cert-manager:*' });
-    expect(result.map((a) => a.name)).toEqual(['cert-manager:openshift-dev']);
+  it('filters by name substring', () => {
+    const result = filterArchitectures(items, { name: 'vault' });
+    expect(result.map((a) => a.name)).toEqual([
+      'hashicorp-vault:ha-storage',
+      'hashicorp-vault:dev',
+    ]);
   });
 
   it('filters by usage', () => {

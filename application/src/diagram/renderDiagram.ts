@@ -78,6 +78,7 @@ export function groupLabelPlacement(
 export interface LayoutNode {
   id: string;
   name: string;
+  component?: string;
   styleId: string;
   groupIds: string[];
   x: number;
@@ -99,6 +100,8 @@ export interface DiagramRenderHandle {
   destroy: () => void;
   /** No-op for static layout; kept for API compatibility. */
   restart: () => void;
+  /** Reset pan/zoom so content is centered and fits the viewport. */
+  fitView: () => void;
 }
 
 export interface RenderDiagramOptions {
@@ -226,6 +229,7 @@ export function renderDiagram(options: RenderDiagramOptions): DiagramRenderHandl
       const laid: LayoutNode = {
         id: n.id,
         name: n.name,
+        component: n.component,
         styleId: n.style,
         groupIds: (diagram.groups ?? [])
           .filter((g) => (membersByGroup.get(g.id) ?? []).includes(n.id))
@@ -353,6 +357,10 @@ export function renderDiagram(options: RenderDiagramOptions): DiagramRenderHandl
 
     const edgeOpts = resolveEdgeOptions(style);
 
+    if (d.component) {
+      g.append('title').text(d.component);
+    }
+
     g.append('circle')
       .attr('r', NODE_RADIUS)
       .attr('fill', colors.fill)
@@ -402,6 +410,19 @@ export function renderDiagram(options: RenderDiagramOptions): DiagramRenderHandl
     });
   });
 
+  const applyFit = () => {
+    const next = centeredDiagramTransform(
+      width,
+      height,
+      layout.contentWidth,
+      layout.contentHeight,
+    );
+    svg.call(
+      zoom.transform,
+      d3.zoomIdentity.translate(next.x, next.y).scale(next.k),
+    );
+  };
+
   return {
     svg: svg.node()!,
     destroy: () => {
@@ -410,6 +431,7 @@ export function renderDiagram(options: RenderDiagramOptions): DiagramRenderHandl
     restart: () => {
       /* static layout */
     },
+    fitView: applyFit,
   };
 }
 

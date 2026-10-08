@@ -12,6 +12,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArchitectureMeta } from '../components/ArchitectureMeta';
+import { SizingSection } from '../components/SizingSection';
 import {
   architectureRepository,
   styleRepository,
@@ -120,26 +121,33 @@ export function ArchitectureDetailPage() {
         <BreadcrumbItem isActive>{architecture.name}</BreadcrumbItem>
       </Breadcrumb>
 
-      <Flex direction={{ default: 'column', lg: 'row' }} gap={{ default: 'gapLg' }}>
-        <FlexItem flex={{ default: 'flex_1' }} style={{ minWidth: 280, maxWidth: 480 }}>
-          <ArchitectureMeta architecture={architecture} />
+      <Flex direction={{ default: 'column' }} gap={{ default: 'gapLg' }}>
+        <FlexItem>
+          <Flex direction={{ default: 'column', lg: 'row' }} gap={{ default: 'gapLg' }}>
+            <FlexItem flex={{ default: 'flex_1' }} style={{ minWidth: 280, maxWidth: 480 }}>
+              <ArchitectureMeta architecture={architecture} />
+            </FlexItem>
+            <FlexItem flex={{ default: 'flex_2' }} style={{ minWidth: 0, flexGrow: 1 }}>
+              <Card className="app-diagram-card" isFullHeight>
+                <CardTitle>
+                  <Title headingLevel="h3" size="lg">
+                    Diagram
+                  </Title>
+                </CardTitle>
+                <CardBody>
+                  <ArchitectureDiagram
+                    diagram={architecture.diagram}
+                    styles={relevantStyles}
+                    theme={theme}
+                    exportBasename={exportBasename}
+                  />
+                </CardBody>
+              </Card>
+            </FlexItem>
+          </Flex>
         </FlexItem>
-        <FlexItem flex={{ default: 'flex_2' }} style={{ minWidth: 0, flexGrow: 1 }}>
-          <Card className="app-diagram-card" isFullHeight>
-            <CardTitle>
-              <Title headingLevel="h3" size="lg">
-                Diagram
-              </Title>
-            </CardTitle>
-            <CardBody>
-              <ArchitectureDiagram
-                diagram={architecture.diagram}
-                styles={relevantStyles}
-                theme={theme}
-                exportBasename={exportBasename}
-              />
-            </CardBody>
-          </Card>
+        <FlexItem>
+          <SizingSection architecture={architecture} />
         </FlexItem>
       </Flex>
     </>

@@ -99,7 +99,7 @@ The architecture list supports query filters:
 
 | Param | Meaning | Example |
 |-------|---------|---------|
-| `name` | Glob against architecture name (`*` → any) | `/?name=cert-manager:*` |
+| `name` | Case-insensitive substring against architecture name (`*` → any) | `/?name=cert-manager` |
 | `usage` | Exact usage label | `/?usage=OpenShift` |
 | `tag` | Exact tag | `/?tag=certificates` |
 
