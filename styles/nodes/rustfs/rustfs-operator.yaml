@@ -1,4 +1,5 @@
 id: rustfs-operator
+kind: node
 logo:
   type: url
   value: https://raw.githubusercontent.com/rustfs/docs.rustfs.com/refs/heads/main/public/images/logo.svg

@@ -42,15 +42,15 @@
       component: csi-block-storage
       style: csi-block-storage
     groups:
-    - id: group-operands
+    - id: operands
       name: Operands
-      style: group-role
+      style: role
       nodes:
       - rustfs
       - csi-block-storage
     edges:
     - source: rustfs-operator
-      target: group-operands
+      target: operands
       style: operator-manage
     - source: rustfs
       target: csi-block-storage

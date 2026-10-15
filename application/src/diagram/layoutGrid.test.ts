@@ -59,7 +59,7 @@ describe('computeGridLayout', () => {
       groups: [
         { id: 'zone-0', name: 'Zone-0', nodes: ['app-0', 'storage-0'] },
         { id: 'zone-1', name: 'Zone-1', nodes: ['app-1', 'storage-1'] },
-        { id: 'group-app', name: 'Apps', nodes: ['app-0', 'app-1'] },
+        { id: 'app', name: 'Apps', nodes: ['app-0', 'app-1'] },
       ],
       edges: [
         { source: 'app-0', target: 'storage-0', style: 'e' },
@@ -76,12 +76,12 @@ describe('computeGridLayout', () => {
     expect(layout.groupBoxes.some((b) => b.id === 'zone-0' && b.kind === 'zone')).toBe(
       true,
     );
-    expect(layout.groupBoxes.some((b) => b.id === 'group-app' && b.kind === 'role')).toBe(
+    expect(layout.groupBoxes.some((b) => b.id === 'app' && b.kind === 'role')).toBe(
       true,
     );
 
     const zone0 = layout.groupBoxes.find((b) => b.id === 'zone-0')!;
-    const apps = layout.groupBoxes.find((b) => b.id === 'group-app')!;
+    const apps = layout.groupBoxes.find((b) => b.id === 'app')!;
     expect(zone0.orientation).toBe('vertical');
     expect(apps.orientation).toBe('horizontal');
     expect(apps.height).toBeLessThan(zone0.height);
@@ -99,13 +99,9 @@ describe('computeGridLayout', () => {
         { id: 'csi-block-storage-wal-1', name: 'WAL', style: 'csi-block-storage' },
       ],
       groups: [
+        { id: 'postgres', name: 'PostgreSQL', nodes: ['postgresql-0', 'postgresql-1'] },
         {
-          id: 'group-postgres',
-          name: 'PostgreSQL',
-          nodes: ['postgresql-0', 'postgresql-1'],
-        },
-        {
-          id: 'group-csi-block-storage',
+          id: 'csi-block-storage',
           name: 'CSI Block Storage',
           nodes: [
             'csi-block-storage-data-0',
@@ -165,9 +161,9 @@ describe('computeGridLayout', () => {
         { id: 'wh-2', name: 'Webhook-2', style: 'app' },
       ],
       groups: [
-        { id: 'group-controllers', name: 'Controllers', nodes: ['cm-0', 'cm-1'] },
-        { id: 'group-injectors', name: 'Injectors', nodes: ['inj-0', 'inj-1'] },
-        { id: 'group-webhooks', name: 'Webhooks', nodes: ['wh-0', 'wh-1', 'wh-2'] },
+        { id: 'controllers', name: 'Controllers', nodes: ['cm-0', 'cm-1'] },
+        { id: 'injectors', name: 'Injectors', nodes: ['inj-0', 'inj-1'] },
+        { id: 'webhooks', name: 'Webhooks', nodes: ['wh-0', 'wh-1', 'wh-2'] },
         { id: 'zone-0', name: 'Zone-0', nodes: ['cm-0', 'inj-0', 'wh-0'] },
         { id: 'zone-1', name: 'Zone-1', nodes: ['cm-1', 'inj-1', 'wh-1'] },
         { id: 'zone-2', name: 'Zone-2', nodes: ['wh-2'] },
@@ -190,12 +186,12 @@ describe('computeGridLayout', () => {
       layout.positions.get('cm-1')!.y,
       5,
     );
-    expect(layout.groupBoxes.find((b) => b.id === 'group-webhooks')!.orientation).toBe(
+    expect(layout.groupBoxes.find((b) => b.id === 'webhooks')!.orientation).toBe(
       'horizontal',
     );
     const zone0 = layout.groupBoxes.find((b) => b.id === 'zone-0')!;
     const zone2 = layout.groupBoxes.find((b) => b.id === 'zone-2')!;
-    const webhooks = layout.groupBoxes.find((b) => b.id === 'group-webhooks')!;
+    const webhooks = layout.groupBoxes.find((b) => b.id === 'webhooks')!;
     expect(zone0.labelAlign).toBe('left');
     expect(zone2.labelAlign).toBe('left');
     expect(webhooks.labelAlign).toBe('top');
@@ -227,9 +223,9 @@ describe('computeGridLayout', () => {
         { id: 'wh-2', name: 'Webhook-2', style: 'app' },
       ],
       groups: [
-        { id: 'group-controllers', name: 'Controllers', nodes: ['cm-0', 'cm-1'] },
-        { id: 'group-cainjectors', name: 'CA Injectors', nodes: ['inj-0', 'inj-1'] },
-        { id: 'group-webhooks', name: 'Webhooks', nodes: ['wh-0', 'wh-1', 'wh-2'] },
+        { id: 'controllers', name: 'Controllers', nodes: ['cm-0', 'cm-1'] },
+        { id: 'cainjectors', name: 'CA Injectors', nodes: ['inj-0', 'inj-1'] },
+        { id: 'webhooks', name: 'Webhooks', nodes: ['wh-0', 'wh-1', 'wh-2'] },
         {
           id: 'zone-0',
           name: 'Zone-0',
@@ -273,9 +269,9 @@ describe('computeGridLayout', () => {
       5,
     );
 
-    const controllers = layout.groupBoxes.find((b) => b.id === 'group-controllers')!;
-    const webhooks = layout.groupBoxes.find((b) => b.id === 'group-webhooks')!;
-    const injectors = layout.groupBoxes.find((b) => b.id === 'group-cainjectors')!;
+    const controllers = layout.groupBoxes.find((b) => b.id === 'controllers')!;
+    const webhooks = layout.groupBoxes.find((b) => b.id === 'webhooks')!;
+    const injectors = layout.groupBoxes.find((b) => b.id === 'cainjectors')!;
     const overlap = (a: typeof controllers, b: typeof controllers) =>
       a.x < b.x + b.width &&
       b.x < a.x + a.width &&
@@ -333,17 +329,17 @@ describe('computeGridLayout', () => {
       ],
       groups: [
         {
-          id: 'group-operands',
+          id: 'operands',
           name: 'Operands',
           style: 'group-role',
           nodes: ['cm', 'wh'],
         },
       ],
-      edges: [{ source: 'op', target: 'group-operands', style: 'e' }],
+      edges: [{ source: 'op', target: 'operands', style: 'e' }],
     });
 
     const op = layout.positions.get('op')!;
-    const operands = layout.groupBoxes.find((b) => b.id === 'group-operands')!;
+    const operands = layout.groupBoxes.find((b) => b.id === 'operands')!;
     expect(operands.styleId).toBe('group-role');
     const insideX = op.x > operands.x && op.x < operands.x + operands.width;
     const insideY = op.y > operands.y && op.y < operands.y + operands.height;
@@ -359,21 +355,21 @@ describe('computeGridLayout', () => {
         { id: 'wh', name: 'Webhook', style: 'a' },
       ],
       groups: [
-        { id: 'group-controllers', name: 'Controllers', style: 'group-role', nodes: ['cm'] },
-        { id: 'group-webhooks', name: 'Webhooks', style: 'group-role', nodes: ['wh'] },
+        { id: 'controllers', name: 'Controllers', style: 'group-role', nodes: ['cm'] },
+        { id: 'webhooks', name: 'Webhooks', style: 'group-role', nodes: ['wh'] },
         {
-          id: 'group-operands',
+          id: 'operands',
           name: 'Operands',
           style: 'group-role',
-          groups: ['group-controllers', 'group-webhooks'],
+          groups: ['controllers', 'webhooks'],
         },
       ],
-      edges: [{ source: 'op', target: 'group-operands', style: 'e' }],
+      edges: [{ source: 'op', target: 'operands', style: 'e' }],
     });
 
-    const operands = layout.groupBoxes.find((b) => b.id === 'group-operands')!;
-    const controllers = layout.groupBoxes.find((b) => b.id === 'group-controllers')!;
-    const webhooks = layout.groupBoxes.find((b) => b.id === 'group-webhooks')!;
+    const operands = layout.groupBoxes.find((b) => b.id === 'operands')!;
+    const controllers = layout.groupBoxes.find((b) => b.id === 'controllers')!;
+    const webhooks = layout.groupBoxes.find((b) => b.id === 'webhooks')!;
     expect(operands.nestDepth).toBeGreaterThan(controllers.nestDepth);
     expect(operands.x).toBeLessThanOrEqual(controllers.x);
     expect(operands.y).toBeLessThanOrEqual(controllers.y);
@@ -420,14 +416,14 @@ describe('computeGridLayout', () => {
       ],
       groups: [
         {
-          id: 'group-operands',
+          id: 'operands',
           name: 'Operands',
           style: 'group-role',
           nodes: ['cm', 'inj', 'wh'],
         },
       ],
       edges: [
-        { source: 'op', target: 'group-operands', style: 'e' },
+        { source: 'op', target: 'operands', style: 'e' },
         { source: 'wh', target: 'cm', style: 'e' },
         { source: 'inj', target: 'cm', style: 'e' },
       ],

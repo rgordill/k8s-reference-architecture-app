@@ -76,16 +76,16 @@
       component: csi-block-storage
       style: csi-block-storage
     groups:
-    - id: group-postgres
+    - id: postgres
       name: PostgreSQL
-      style: group-role
+      style: role
       nodes:
       - postgresql-0
       - postgresql-1
       - postgresql-2
-    - id: group-csi-block-storage
+    - id: csi-block-storage
       name: CSI Block Storage
-      style: group-role
+      style: role
       nodes:
       - csi-block-storage-data-0
       - csi-block-storage-data-1
@@ -93,12 +93,12 @@
       - csi-block-storage-wal-0
       - csi-block-storage-wal-1
       - csi-block-storage-wal-2
-    - id: group-operands
+    - id: operands
       name: Operands
-      style: group-role
+      style: role
       groups:
-      - group-postgres
-      - group-csi-block-storage
+      - postgres
+      - csi-block-storage
     - id: zone-a
       name: 'Zone~a~'
       style: zone
@@ -122,7 +122,7 @@
       - csi-block-storage-wal-2
     edges:
     - source: cloudnative-pg-operator
-      target: group-operands
+      target: operands
       style: operator-manage
     - source: postgresql-0
       target: csi-block-storage-data-0

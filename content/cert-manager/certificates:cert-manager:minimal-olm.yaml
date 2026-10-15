@@ -49,16 +49,16 @@
       component: cert-manager-webhook
       style: cert-manager-application
     groups:
-    - id: group-operands
+    - id: operands
       name: Operands
-      style: group-role
+      style: role
       nodes:
       - cert-manager
       - cert-manager-ca-injector
       - cert-manager-webhook
     edges:
     - source: cert-manager-operator
-      target: group-operands
+      target: operands
       style: operator-manage
     - source: cert-manager-webhook
       target: cert-manager

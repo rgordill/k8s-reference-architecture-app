@@ -51,16 +51,16 @@
       style: csi-block-storage
     groups:
     # Logical role groups (a node can belong to more than one group)
-    - id: group-vault
+    - id: vault
       name: Vault
-      style: group-role
+      style: role
       nodes:
       - vault-0
       - vault-1
       - vault-2
-    - id: group-storage
+    - id: storage
       name: Storage
-      style: group-role
+      style: role
       nodes:
       - csi-block-storage-0
       - csi-block-storage-1
@@ -68,19 +68,19 @@
     # Failure-domain / placement groups
     - id: zone-0
       name: Zone-0
-      style: group-zone
+      style: zone
       nodes:
       - vault-0
       - csi-block-storage-0
     - id: zone-1
       name: Zone-1
-      style: group-zone
+      style: zone
       nodes:
       - vault-1
       - csi-block-storage-1
     - id: zone-2
       name: Zone-2
-      style: group-zone
+      style: zone
       nodes:
       - vault-2
       - csi-block-storage-2

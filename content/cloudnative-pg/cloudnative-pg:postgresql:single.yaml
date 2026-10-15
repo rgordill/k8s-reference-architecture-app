@@ -45,15 +45,15 @@
       component: csi-block-storage
       style: csi-block-storage
     groups:
-    - id: group-operands
+    - id: operands
       name: Operands
-      style: group-role
+      style: role
       nodes:
       - postgresql
       - csi-block-storage
     edges:
     - source: cloudnative-pg-operator
-      target: group-operands
+      target: operands
       style: operator-manage
     - source: postgresql
       target: csi-block-storage

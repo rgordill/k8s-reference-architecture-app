@@ -74,34 +74,34 @@
       name: 'Empty~2~'
       style: empty
     groups:
-    - id: group-controllers
+    - id: controllers
       name: Controllers
       style: role
       nodes:
       - cert-manager-0
       - cert-manager-1
       - empty-1
-    - id: group-cainjectors
+    - id: cainjectors
       name: CA Injectors
       style: role
       nodes:
       - cert-manager-ca-injector-0
       - cert-manager-ca-injector-1
       - empty-2
-    - id: group-webhooks
+    - id: webhooks
       name: Webhooks
       style: role
       nodes:
       - cert-manager-webhook-0
       - cert-manager-webhook-1
       - cert-manager-webhook-2
-    - id: group-operands
+    - id: operands
       name: Operands
       style: role
       groups:
-      - group-controllers
-      - group-cainjectors
-      - group-webhooks
+      - controllers
+      - cainjectors
+      - webhooks
     - id: zone-a
       name: 'Zone~a~'
       style: zone
@@ -125,7 +125,7 @@
       - cert-manager-webhook-2
     edges:
     - source: cert-manager-operator
-      target: group-operands
+      target: operands
       style: operator-manage
     - source: cert-manager-webhook-0
       target: cert-manager-0
