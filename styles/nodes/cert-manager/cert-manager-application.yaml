@@ -1,4 +1,4 @@
-id: cert-manager-application-standby
+id: cert-manager-application
 kind: node
 logo:
   type: url
@@ -16,6 +16,5 @@ colors:
 font:
   family: 'RedHatText, Overpass, sans-serif'
   size: 11
-edge:
-  strokeWidth: 2
-  dashArray: '6 4'
+legend:
+  text: 'Application Active'

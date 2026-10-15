@@ -1,6 +1,7 @@
 import styleFixtures from 'virtual:style-fixtures';
 import type { StyleRepository } from '../repositories';
 import type { StyleDefinition } from '../types';
+import { bumpFixtureRevision, hashFixtures } from './fixtureRevision';
 import { parseStyleFile } from './loadYaml';
 
 function loadAll(): StyleDefinition[] {
@@ -15,10 +16,13 @@ function loadAll(): StyleDefinition[] {
 }
 
 let cache: StyleDefinition[] | null = null;
+let cacheKey = '';
 
 function all(): StyleDefinition[] {
-  if (!cache) {
+  const key = hashFixtures(styleFixtures);
+  if (!cache || cacheKey !== key) {
     cache = loadAll();
+    cacheKey = key;
   }
   return cache;
 }
@@ -35,4 +39,12 @@ export const localStyleRepository: StyleRepository = {
 
 export function resetStyleCache(): void {
   cache = null;
+  cacheKey = '';
+}
+
+if (import.meta.hot) {
+  import.meta.hot.accept('virtual:style-fixtures', () => {
+    resetStyleCache();
+    bumpFixtureRevision();
+  });
 }

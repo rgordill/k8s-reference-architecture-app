@@ -1,5 +1,10 @@
 import * as d3 from 'd3';
-import type { Diagram, StyleDefinition, ThemeMode } from '../data/types';
+import type {
+  Diagram,
+  StyleColors,
+  StyleDefinition,
+  ThemeMode,
+} from '../data/types';
 import {
   collectAllGroupNodeIds,
 } from '../data/groupMembership';
@@ -11,6 +16,33 @@ import {
   resolveFont,
   resolveLogoHref,
 } from './styleResolve';
+
+function isTransparentPaint(value: string | undefined): boolean {
+  if (!value) {
+    return false;
+  }
+  const normalized = value.trim().toLowerCase();
+  return (
+    normalized === 'transparent' ||
+    normalized === 'none' ||
+    /^rgba?\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*,\s*0\s*\)$/.test(normalized)
+  );
+}
+
+/** Invisible layout spacer: no logo/label; transparent fill and stroke. */
+export function isSpacerNodeStyle(
+  style: StyleDefinition | undefined,
+  colors: StyleColors,
+): boolean {
+  if (style?.id === 'empty') {
+    return true;
+  }
+  return (
+    !style?.logo &&
+    isTransparentPaint(colors.fill) &&
+    isTransparentPaint(colors.stroke)
+  );
+}
 
 export interface GroupLabelPlacement {
   x: number;
@@ -114,7 +146,7 @@ export interface RenderDiagramOptions {
 }
 
 const NODE_RADIUS = 44;
-const NODE_ICON_SIZE = 20;
+const NODE_ICON_SIZE = 30;
 const NODE_ICON_TEXT_GAP = 4;
 
 /**
@@ -252,6 +284,8 @@ export function renderDiagram(options: RenderDiagramOptions): DiagramRenderHandl
     return groupById.get(id) ?? null;
   };
 
+  const isGroupAnchor = (id: string): boolean => groupById.has(id);
+
   const links: LayoutLink[] = diagram.edges
     .map((e) => {
       const source = asAnchor(e.source);
@@ -260,14 +294,20 @@ export function renderDiagram(options: RenderDiagramOptions): DiagramRenderHandl
         return null;
       }
       const { start, end } = resolveEdgeEndpoints(source, target);
+      // Pull endpoints off node centers / slightly off group borders so the
+      // arrow tip sits on the boundary instead of under the node fill.
+      const sourceInset = isGroupAnchor(e.source) ? 2 : NODE_RADIUS;
+      const targetInset = isGroupAnchor(e.target) ? 6 : NODE_RADIUS;
+      const trimmedStart = movePointToward(start, end, sourceInset);
+      const trimmedEnd = movePointToward(end, start, targetInset);
       return {
         source: e.source,
         target: e.target,
         styleId: e.style,
-        x1: start.x,
-        y1: start.y,
-        x2: end.x,
-        y2: end.y,
+        x1: trimmedStart.x,
+        y1: trimmedStart.y,
+        x2: trimmedEnd.x,
+        y2: trimmedEnd.y,
       };
     })
     .filter((link): link is LayoutLink => link != null);
@@ -280,6 +320,9 @@ export function renderDiagram(options: RenderDiagramOptions): DiagramRenderHandl
     .attr('width', width)
     .attr('height', height)
     .attr('viewBox', `0 0 ${width} ${height}`);
+
+  const defs = svg.append('defs');
+  const arrowMarkerIds = new Map<string, string>();
 
   const root = svg.append('g').attr('class', 'diagram-root');
   const fit = centeredDiagramTransform(
@@ -327,7 +370,15 @@ export function renderDiagram(options: RenderDiagramOptions): DiagramRenderHandl
       'stroke-dasharray',
       (d) => resolveEdgeOptions(styles.get(d.styleId)).dashArray ?? null,
     )
-    .attr('stroke-opacity', 0.9);
+    .attr('stroke-opacity', 0.9)
+    .attr('marker-end', (d) => {
+      const edgeOpts = resolveEdgeOptions(styles.get(d.styleId));
+      if (edgeOpts.bidirectional) {
+        return null;
+      }
+      const stroke = resolveColors(styles.get(d.styleId), theme, 'edge').stroke;
+      return `url(#${ensureEdgeArrowMarker(defs, stroke, arrowMarkerIds)})`;
+    });
 
   const node = nodeLayer
     .selectAll<SVGGElement, LayoutNode>('g.node')
@@ -343,6 +394,28 @@ export function renderDiagram(options: RenderDiagramOptions): DiagramRenderHandl
     const style = styles.get(d.styleId);
     const colors = resolveColors(style, theme, 'node');
     const font = resolveFont(style);
+    const edgeOpts = resolveEdgeOptions(style);
+    const spacer = isSpacerNodeStyle(style, colors);
+
+    if (spacer) {
+      g.classed('node-spacer', true);
+    }
+
+    if (d.component) {
+      g.append('title').text(d.component);
+    }
+
+    g.append('circle')
+      .attr('r', NODE_RADIUS)
+      .attr('fill', colors.fill)
+      .attr('stroke', colors.stroke)
+      .attr('stroke-width', spacer ? 0 : (edgeOpts.strokeWidth ?? 2))
+      .attr('stroke-dasharray', edgeOpts.dashArray ?? null);
+
+    if (spacer) {
+      return;
+    }
+
     const logo = resolveLogoHref(style, theme);
     const fallbackPath =
       resolveLogoHref({
@@ -354,19 +427,6 @@ export function renderDiagram(options: RenderDiagramOptions): DiagramRenderHandl
           dark: { fill: '#333', stroke: '#eee', text: '#fff' },
         },
       }, theme).path ?? '';
-
-    const edgeOpts = resolveEdgeOptions(style);
-
-    if (d.component) {
-      g.append('title').text(d.component);
-    }
-
-    g.append('circle')
-      .attr('r', NODE_RADIUS)
-      .attr('fill', colors.fill)
-      .attr('stroke', colors.stroke)
-      .attr('stroke-width', edgeOpts.strokeWidth ?? 2)
-      .attr('stroke-dasharray', edgeOpts.dashArray ?? null);
 
     const iconSize = NODE_ICON_SIZE;
     const lines = wrapMarkdownLabel(d.name);
@@ -444,7 +504,16 @@ function appendMarkdownSpans<Datum>(
   const runs = spans.length > 0 ? spans : [{ text: '', style: {
     bold: false, italic: false, code: false, strike: false, sub: false, sup: false,
   } }];
+  // Prefer dy over baseline-shift — SVG baseline-shift is ignored in several browsers,
+  // which flattens Zone~0~ into a plain "Zone0" label.
+  let prevShift = 0;
   runs.forEach((span) => {
+    let shift = 0;
+    if (span.style.sub) {
+      shift = fontSize * 0.35;
+    } else if (span.style.sup) {
+      shift = -fontSize * 0.45;
+    }
     const tspan = line.append('tspan').text(span.text);
     tspan.attr('font-weight', span.style.bold ? 800 : 600);
     if (span.style.italic) {
@@ -460,7 +529,11 @@ function appendMarkdownSpans<Datum>(
     }
     if (span.style.sub || span.style.sup) {
       tspan.attr('font-size', fontSize * 0.75);
-      tspan.attr('baseline-shift', span.style.sub ? 'sub' : 'super');
+      tspan.attr('data-md', span.style.sub ? 'sub' : 'sup');
+    }
+    if (shift !== prevShift) {
+      tspan.attr('dy', shift - prevShift);
+      prevShift = shift;
     }
   });
 }
@@ -545,9 +618,50 @@ function appendPfIcon(
   if (!path) {
     return;
   }
+  const half = NODE_ICON_SIZE / 2;
+  const scale = NODE_ICON_SIZE / 1024;
   g.append('g')
-    .attr('transform', `translate(-10,${iconY}) scale(0.02)`)
+    .attr('transform', `translate(${-half},${iconY}) scale(${scale})`)
     .append('path')
     .attr('d', path)
     .attr('fill', fill);
+}
+
+/** Move `from` toward `to` by up to `distance` (capped so short edges remain). */
+export function movePointToward(from: Point, to: Point, distance: number): Point {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const len = Math.hypot(dx, dy);
+  if (len < 1e-6 || distance <= 0) {
+    return from;
+  }
+  const t = Math.min(distance, len * 0.4) / len;
+  return { x: from.x + dx * t, y: from.y + dy * t };
+}
+
+function ensureEdgeArrowMarker(
+  defs: d3.Selection<SVGDefsElement, unknown, null, undefined>,
+  stroke: string,
+  markerIds: Map<string, string>,
+): string {
+  const existing = markerIds.get(stroke);
+  if (existing) {
+    return existing;
+  }
+  const id = `edge-arrow-${markerIds.size}`;
+  markerIds.set(stroke, id);
+  defs
+    .append('marker')
+    .attr('id', id)
+    .attr('viewBox', '0 0 10 10')
+    .attr('refX', 9)
+    .attr('refY', 5)
+    .attr('markerWidth', 6)
+    .attr('markerHeight', 6)
+    .attr('markerUnits', 'strokeWidth')
+    .attr('orient', 'auto')
+    .append('path')
+    .attr('d', 'M 0 0 L 10 5 L 0 10 z')
+    .attr('fill', stroke);
+  return id;
 }

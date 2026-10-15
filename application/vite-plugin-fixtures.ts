@@ -43,16 +43,27 @@ export function fixturesPlugin(): Plugin {
     configureServer(server) {
       server.watcher.add(contentDir);
       server.watcher.add(stylesDir);
-      server.watcher.on('change', (file) => {
-        if (file.startsWith(contentDir) || file.startsWith(stylesDir)) {
-          const mod = server.moduleGraph.getModuleById(
-            file.startsWith(contentDir) ? ARCH_RESOLVED : STYLE_RESOLVED,
-          );
+
+      const reloadFixtures = (file: string) => {
+        if (file.startsWith(contentDir)) {
+          const mod = server.moduleGraph.getModuleById(ARCH_RESOLVED);
+          if (mod) {
+            void server.reloadModule(mod);
+          }
+          return;
+        }
+        if (file.startsWith(stylesDir)) {
+          const mod = server.moduleGraph.getModuleById(STYLE_RESOLVED);
           if (mod) {
             void server.reloadModule(mod);
           }
         }
-      });
+      };
+
+      // New style/content files only emit add/unlink — change alone misses them.
+      for (const event of ['change', 'add', 'unlink'] as const) {
+        server.watcher.on(event, reloadFixtures);
+      }
     },
   };
 }

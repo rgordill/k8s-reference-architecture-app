@@ -3,6 +3,7 @@ import type { Diagram, StyleDefinition } from '../data/types';
 import { serializeSvg } from './exportDiagram';
 import {
   centeredDiagramTransform,
+  isSpacerNodeStyle,
   layoutNodeContent,
   renderDiagram,
 } from './renderDiagram';
@@ -67,7 +68,7 @@ describe('layoutNodeContent', () => {
     const one = layoutNodeContent(1, 12);
     const three = layoutNodeContent(3, 12);
     expect(three.iconY).toBeLessThan(one.iconY);
-    expect(three.textStartY).toBeGreaterThan(three.iconY + 20);
+    expect(three.textStartY).toBeGreaterThan(three.iconY + 30);
     const oneBottom = one.textStartY + one.lineHeight - 12 * 0.8;
     const threeBottom = three.textStartY + 3 * three.lineHeight - 12 * 0.8;
     expect(one.iconY + oneBottom).toBeCloseTo(0, 5);
@@ -101,7 +102,10 @@ describe('renderDiagram', () => {
     expect(nodeA?.textContent).toContain('A');
     expect(nodeA?.textContent).toContain('0');
     expect(nodeA?.querySelector('tspan[font-weight="800"]')?.textContent).toBe('A');
-    expect(nodeA?.querySelector('tspan[baseline-shift="sub"]')?.textContent).toBe('0');
+    expect(nodeA?.querySelector('tspan[data-md="sub"]')?.textContent).toBe('0');
+    expect(Number(nodeA?.querySelector('tspan[data-md="sub"]')?.getAttribute('dy'))).toBeGreaterThan(
+      0,
+    );
     expect(
       handle.svg.querySelector('[data-id="b"] tspan[font-style="italic"]')?.textContent,
     ).toBe('B');
@@ -109,12 +113,47 @@ describe('renderDiagram', () => {
       'group-a',
     );
     expect(handle.svg.querySelectorAll('line').length).toBe(1);
+    const edge = handle.svg.querySelector('line');
+    expect(edge?.getAttribute('marker-end')).toMatch(/^url\(#edge-arrow-\d+\)$/);
+    expect(handle.svg.querySelector('defs marker path')).toBeTruthy();
     expect(handle.svg.getAttribute('viewBox')).toBe('0 0 640 400');
     expect(handle.svg.querySelector('.diagram-root')?.getAttribute('transform') ?? '').toMatch(
       /translate\(/,
     );
     expect(serializeSvg(handle.svg)).toContain('<svg');
 
+    handle.destroy();
+    container.remove();
+  });
+
+  it('omits the end arrow when the edge style is bidirectional', () => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const handle = renderDiagram({
+      container,
+      diagram: {
+        nodes: [
+          { id: 'a', name: 'A', style: 'node-a' },
+          { id: 'b', name: 'B', style: 'node-a' },
+        ],
+        edges: [{ source: 'a', target: 'b', style: 'edge-bi' }],
+      },
+      styles: new Map([
+        ...styles.map((s) => [s.id, s] as const),
+        [
+          'edge-bi',
+          {
+            ...styles[1],
+            id: 'edge-bi',
+            edge: { strokeWidth: 2, bidirectional: true },
+          },
+        ],
+      ]),
+      theme: 'light',
+      width: 400,
+      height: 300,
+    });
+    expect(handle.svg.querySelector('line')?.getAttribute('marker-end')).toBeNull();
     handle.destroy();
     container.remove();
   });
@@ -212,10 +251,47 @@ describe('renderDiagram', () => {
     tall.destroy();
     container.remove();
 
-    const shortY = Number(shortIcon?.match(/translate\(-10,(-?[\d.]+)\)/)?.[1]);
-    const tallY = Number(tallIcon?.match(/translate\(-10,(-?[\d.]+)\)/)?.[1]);
+    const shortY = Number(shortIcon?.match(/translate\(-[\d.]+,(-?[\d.]+)\)/)?.[1]);
+    const tallY = Number(tallIcon?.match(/translate\(-[\d.]+,(-?[\d.]+)\)/)?.[1]);
     expect(tallY).toBeLessThan(shortY);
     expect(firstLineY).toBeGreaterThan(tallY);
+  });
+
+  it('treats the empty style as a transparent spacer without icon or label', () => {
+    const empty: StyleDefinition = {
+      id: 'empty',
+      kind: 'node',
+      colors: {
+        light: { fill: 'transparent', stroke: 'transparent', text: 'transparent' },
+        dark: { fill: 'transparent', stroke: 'transparent', text: 'transparent' },
+      },
+      edge: { strokeWidth: 0 },
+    };
+    expect(
+      isSpacerNodeStyle(empty, empty.colors.light),
+    ).toBe(true);
+
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    const handle = renderDiagram({
+      container,
+      diagram: {
+        nodes: [{ id: 'spacer', name: 'Empty', style: 'empty' }],
+        edges: [],
+      },
+      styles: new Map([['empty', empty]]),
+      theme: 'light',
+      width: 400,
+      height: 300,
+    });
+    const node = handle.svg.querySelector('[data-id="spacer"]');
+    expect(node?.classList.contains('node-spacer')).toBe(true);
+    expect(node?.querySelector('circle')?.getAttribute('fill')).toBe('transparent');
+    expect(node?.querySelector('image')).toBeNull();
+    expect(node?.querySelector('text')).toBeNull();
+    expect(node?.querySelector('path')).toBeNull();
+    handle.destroy();
+    container.remove();
   });
 
   it('draws a dashed node outline when the style sets dashArray', () => {
@@ -268,7 +344,9 @@ describe('renderDiagram', () => {
     });
     const group = handle.svg.querySelector('[data-id="g1"]');
     expect(group?.querySelector('tspan[font-weight="800"]')?.textContent).toBe('Zone');
-    expect(group?.querySelector('tspan[baseline-shift="sub"]')?.textContent).toBe('0');
+    const sub = group?.querySelector('tspan[data-md="sub"]');
+    expect(sub?.textContent).toBe('0');
+    expect(Number(sub?.getAttribute('dy'))).toBeGreaterThan(0);
     handle.destroy();
     container.remove();
   });

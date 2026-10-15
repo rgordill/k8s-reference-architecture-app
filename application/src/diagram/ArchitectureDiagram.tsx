@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Diagram, StyleDefinition, ThemeMode } from '../data/types';
 import { ExportToolbar } from '../components/ExportToolbar';
+import { DiagramLegend } from './DiagramLegend';
 import { exportPng, exportSvg } from './exportDiagram';
 import { renderDiagram, type DiagramRenderHandle } from './renderDiagram';
 
@@ -85,7 +86,10 @@ export function ArchitectureDiagram({
         onFitView={onFitView}
         disabled={!ready}
       />
-      <div className="app-diagram-host" ref={hostRef} data-testid="diagram-host" />
+      <div className="app-diagram-canvas-row">
+        <div className="app-diagram-host" ref={hostRef} data-testid="diagram-host" />
+        <DiagramLegend diagram={diagram} styles={styles} theme={theme} />
+      </div>
     </div>
   );
 }

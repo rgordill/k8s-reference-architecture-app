@@ -1,0 +1,61 @@
+---
+- name: 'postgres:cloudnative-pg:single'
+  description: |-
+   Single cloudnative-pg read/write replica for development and testing.
+   Common storage for data and WAL.
+  icon:
+    type: url
+    value: https://raw.githubusercontent.com/cloudnative-pg/artwork/refs/heads/main/portrait/cloudnativepg-portrait-blue.svg
+    valueDark: https://raw.githubusercontent.com/cloudnative-pg/artwork/refs/heads/main/portrait/cloudnativepg-portrait-white.svg
+  characteristics:
+  - Operator-managed.
+  - Single instance.
+  version: '1.30'
+  usage:
+  - Development
+  - Edge
+  tags:
+  - cloudnative-pg
+  - development
+  - deploy:operator
+  dependencies: 
+  - csi-block-storage
+  components:
+  - cloudnative-pg-operator
+  - postgresql
+  - csi-block-storage
+  source:
+  - https://github.com/cloudnative-pg/cloudnative-pg
+  documentation:
+  - https://deepwiki.com/cloudnative-pg/cloudnative-pg/3-core-components
+  - https://cloudnative-pg.io/docs/
+  - https://github.com/EnterpriseDB/edb-ref-archs
+  diagram:
+    nodes:
+    - id: cloudnative-pg-operator
+      name: Operator
+      component: cloudnative-pg-operator
+      style: cloudnative-pg-operator
+    - id: postgresql
+      name: PostgreSQL
+      component: postgresql
+      style: postgresql
+    - id: csi-block-storage
+      name: Data + WAL
+      component: csi-block-storage
+      style: csi-block-storage
+    groups:
+    - id: group-operands
+      name: Operands
+      style: group-role
+      nodes:
+      - postgresql
+      - csi-block-storage
+    edges:
+    - source: cloudnative-pg-operator
+      target: group-operands
+      style: operator-manage
+    - source: postgresql
+      target: csi-block-storage
+      style: csi-block-storage
+  sizing:

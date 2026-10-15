@@ -15,3 +15,5 @@ colors:
 font:
   family: 'RedHatText, Overpass, sans-serif'
   size: 12
+legend:
+  text: 'CSI Block Storage'

@@ -88,6 +88,71 @@ describe('computeGridLayout', () => {
     expect(zone0.width).toBeLessThan(apps.width);
   });
 
+  it('places same role-group peers side-by-side inside a zone', () => {
+    const layout = computeGridLayout({
+      nodes: [
+        { id: 'postgresql-0', name: 'PostgreSQL-0', style: 'postgresql' },
+        { id: 'csi-block-storage-data-0', name: 'Data', style: 'csi-block-storage' },
+        { id: 'csi-block-storage-wal-0', name: 'WAL', style: 'csi-block-storage' },
+        { id: 'postgresql-1', name: 'PostgreSQL-1', style: 'postgresql' },
+        { id: 'csi-block-storage-data-1', name: 'Data', style: 'csi-block-storage' },
+        { id: 'csi-block-storage-wal-1', name: 'WAL', style: 'csi-block-storage' },
+      ],
+      groups: [
+        {
+          id: 'group-postgres',
+          name: 'PostgreSQL',
+          nodes: ['postgresql-0', 'postgresql-1'],
+        },
+        {
+          id: 'group-csi-block-storage',
+          name: 'CSI Block Storage',
+          nodes: [
+            'csi-block-storage-data-0',
+            'csi-block-storage-data-1',
+            'csi-block-storage-wal-0',
+            'csi-block-storage-wal-1',
+          ],
+        },
+        {
+          id: 'zone-0',
+          name: 'Zone-0',
+          nodes: [
+            'postgresql-0',
+            'csi-block-storage-data-0',
+            'csi-block-storage-wal-0',
+          ],
+        },
+        {
+          id: 'zone-1',
+          name: 'Zone-1',
+          nodes: [
+            'postgresql-1',
+            'csi-block-storage-data-1',
+            'csi-block-storage-wal-1',
+          ],
+        },
+      ],
+      edges: [
+        { source: 'postgresql-0', target: 'csi-block-storage-data-0', style: 'e' },
+        { source: 'postgresql-0', target: 'csi-block-storage-wal-0', style: 'e' },
+        { source: 'postgresql-1', target: 'csi-block-storage-data-1', style: 'e' },
+        { source: 'postgresql-1', target: 'csi-block-storage-wal-1', style: 'e' },
+      ],
+    });
+
+    const pg0 = layout.positions.get('postgresql-0')!;
+    const data0 = layout.positions.get('csi-block-storage-data-0')!;
+    const wal0 = layout.positions.get('csi-block-storage-wal-0')!;
+    expect(pg0.y).toBeLessThan(data0.y);
+    expect(data0.y).toBeCloseTo(wal0.y, 5);
+    expect(data0.x).toBeLessThan(wal0.x);
+    expect(data0.y).toBeCloseTo(
+      layout.positions.get('csi-block-storage-data-1')!.y,
+      5,
+    );
+  });
+
   it('aligns members of a horizontal role group onto one row across zones', () => {
     const layout = computeGridLayout({
       nodes: [
@@ -148,6 +213,77 @@ describe('computeGridLayout', () => {
         expect(overlap, `${a.id} overlaps ${b.id}`).toBe(false);
       }
     }
+  });
+
+  it('keeps disjoint role groups from overlapping when zones omit roles', () => {
+    const layout = computeGridLayout({
+      nodes: [
+        { id: 'cm-0', name: 'Controller-0', style: 'app' },
+        { id: 'cm-1', name: 'Controller-1', style: 'app' },
+        { id: 'inj-0', name: 'Injector-0', style: 'app' },
+        { id: 'inj-1', name: 'Injector-1', style: 'app' },
+        { id: 'wh-0', name: 'Webhook-0', style: 'app' },
+        { id: 'wh-1', name: 'Webhook-1', style: 'app' },
+        { id: 'wh-2', name: 'Webhook-2', style: 'app' },
+      ],
+      groups: [
+        { id: 'group-controllers', name: 'Controllers', nodes: ['cm-0', 'cm-1'] },
+        { id: 'group-cainjectors', name: 'CA Injectors', nodes: ['inj-0', 'inj-1'] },
+        { id: 'group-webhooks', name: 'Webhooks', nodes: ['wh-0', 'wh-1', 'wh-2'] },
+        {
+          id: 'zone-0',
+          name: 'Zone-0',
+          nodes: ['cm-0', 'inj-0', 'wh-0'],
+        },
+        { id: 'zone-1', name: 'Zone-1', nodes: ['cm-1', 'wh-1'] },
+        { id: 'zone-2', name: 'Zone-2', nodes: ['inj-1', 'wh-2'] },
+      ],
+      edges: [
+        { source: 'wh-0', target: 'cm-0', style: 'e' },
+        { source: 'wh-0', target: 'cm-1', style: 'e' },
+        { source: 'wh-1', target: 'cm-0', style: 'e' },
+        { source: 'wh-1', target: 'cm-1', style: 'e' },
+        { source: 'wh-2', target: 'cm-0', style: 'e' },
+        { source: 'wh-2', target: 'cm-1', style: 'e' },
+        { source: 'inj-0', target: 'cm-0', style: 'e' },
+        { source: 'inj-0', target: 'cm-1', style: 'e' },
+        { source: 'inj-1', target: 'cm-0', style: 'e' },
+        { source: 'inj-1', target: 'cm-1', style: 'e' },
+      ],
+    });
+
+    expect(layout.positions.get('wh-0')!.y).toBeCloseTo(
+      layout.positions.get('wh-1')!.y,
+      5,
+    );
+    expect(layout.positions.get('wh-0')!.y).toBeCloseTo(
+      layout.positions.get('wh-2')!.y,
+      5,
+    );
+    expect(layout.positions.get('cm-0')!.y).toBeCloseTo(
+      layout.positions.get('cm-1')!.y,
+      5,
+    );
+    expect(layout.positions.get('inj-0')!.y).toBeCloseTo(
+      layout.positions.get('inj-1')!.y,
+      5,
+    );
+    expect(layout.positions.get('wh-0')!.y).not.toBeCloseTo(
+      layout.positions.get('cm-0')!.y,
+      5,
+    );
+
+    const controllers = layout.groupBoxes.find((b) => b.id === 'group-controllers')!;
+    const webhooks = layout.groupBoxes.find((b) => b.id === 'group-webhooks')!;
+    const injectors = layout.groupBoxes.find((b) => b.id === 'group-cainjectors')!;
+    const overlap = (a: typeof controllers, b: typeof controllers) =>
+      a.x < b.x + b.width &&
+      b.x < a.x + a.width &&
+      a.y < b.y + b.height &&
+      b.y < a.y + a.height;
+    expect(overlap(controllers, webhooks)).toBe(false);
+    expect(overlap(controllers, injectors)).toBe(false);
+    expect(overlap(webhooks, injectors)).toBe(false);
   });
 
   it('applies group box text placement from style', () => {
@@ -320,14 +456,14 @@ describe('computeGridLayout', () => {
         expect(Number.isFinite(pos!.x)).toBe(true);
         expect(Number.isFinite(pos!.y)).toBe(true);
       }
+      const nodeIds = new Set(arch!.diagram.nodes.map((n) => n.id));
+      const groupsById = groupByIdMap(arch!.diagram.groups ?? []);
       for (const group of arch!.diagram.groups ?? []) {
         const box = layout.groupBoxes.find((b) => b.id === group.id);
         expect(box, `${arch!.name} missing box for group ${group.id}`).toBeDefined();
         expect(box!.styleId, `${arch!.name} ${group.id} missing styleId`).toBe(
           group.style,
         );
-        const nodeIds = new Set(arch!.diagram.nodes.map((n) => n.id));
-        const groupsById = groupByIdMap(arch!.diagram.groups ?? []);
         const members = new Set(
           collectGroupNodeIds(group.id, groupsById, nodeIds),
         );
@@ -379,6 +515,33 @@ describe('computeGridLayout', () => {
           expect(
             overlap,
             `${arch!.name} ${a.id} overlaps ${b.id}`,
+          ).toBe(false);
+        }
+      }
+
+      // Disjoint groups must not overlap; shared membership (zone∩role) may.
+      for (let i = 0; i < layout.groupBoxes.length; i += 1) {
+        for (let j = i + 1; j < layout.groupBoxes.length; j += 1) {
+          const a = layout.groupBoxes[i];
+          const b = layout.groupBoxes[j];
+          const aMembers = new Set(
+            collectGroupNodeIds(a.id, groupsById, nodeIds),
+          );
+          const bMembers = new Set(
+            collectGroupNodeIds(b.id, groupsById, nodeIds),
+          );
+          const shared = [...aMembers].some((id) => bMembers.has(id));
+          if (shared) {
+            continue;
+          }
+          const overlap =
+            a.x < b.x + b.width &&
+            b.x < a.x + a.width &&
+            a.y < b.y + b.height &&
+            b.y < a.y + a.height;
+          expect(
+            overlap,
+            `${arch!.name} disjoint groups ${a.id} and ${b.id} overlap`,
           ).toBe(false);
         }
       }

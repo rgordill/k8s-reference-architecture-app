@@ -1,9 +1,12 @@
 ---
-- name: 'cert-manager:olm:dev'
+- name: 'certificates:cert-manager:minimal-olm'
   description: |-
     Single-replica cert-manager deployed by the cert-manager operator.
     Includes the operator plus one controller, CA injector, and webhook that issue
     and renew TLS certificates as Kubernetes resources.
+  icon:
+    type: url
+    value: https://raw.githubusercontent.com/cncf/artwork/main/projects/cert-manager/icon/color/cert-manager-icon-color.svg
   characteristics:
   - Operator-managed.
   - Single replica per operand.
@@ -59,10 +62,10 @@
       style: operator-manage
     - source: cert-manager-webhook
       target: cert-manager
-      style: cert-manager-connect
+      style: application-connect
     - source: cert-manager-ca-injector
       target: cert-manager
-      style: cert-manager-connect
+      style: application-connect
   sizing:
     - name: min
       description: |-

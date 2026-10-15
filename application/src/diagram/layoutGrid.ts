@@ -91,6 +91,95 @@ function nodeRowRank(node: DiagramNode, incoming: Set<string>, outgoing: Set<str
 }
 
 /**
+ * Most specific leaf role group that lists the node directly. Used so peers in
+ * the same role group (e.g. Data + WAL) share a horizontal band inside a zone.
+ */
+export function leafRoleGroupKey(
+  nodeId: string,
+  roleGroups: DiagramGroup[],
+): string {
+  const leaves = roleGroups.filter(
+    (group) =>
+      nestedGroupIds(group).length === 0 &&
+      (group.nodes ?? []).includes(nodeId),
+  );
+  if (leaves.length === 0) {
+    return nodeId;
+  }
+  leaves.sort(
+    (a, b) =>
+      (a.nodes?.length ?? 0) - (b.nodes?.length ?? 0) ||
+      a.id.localeCompare(b.id),
+  );
+  return leaves[0].id;
+}
+
+interface ZoneBand {
+  ids: string[];
+  rank: number;
+}
+
+/**
+ * Partition ranked zone members into vertical bands. Members that share the
+ * same leaf role group stay in one band and are laid out side-by-side.
+ */
+export function buildZoneBands(
+  rankedIds: string[],
+  ranks: Map<string, number>,
+  roleGroups: DiagramGroup[],
+): ZoneBand[] {
+  const byKey = new Map<string, ZoneBand>();
+  const order: string[] = [];
+
+  for (const id of rankedIds) {
+    const key = leafRoleGroupKey(id, roleGroups);
+    const existing = byKey.get(key);
+    const rank = ranks.get(id) ?? 25;
+    if (existing) {
+      existing.ids.push(id);
+      existing.rank = Math.min(existing.rank, rank);
+      continue;
+    }
+    byKey.set(key, { ids: [id], rank });
+    order.push(key);
+  }
+
+  return order
+    .map((key) => byKey.get(key)!)
+    .sort(
+      (a, b) =>
+        a.rank - b.rank ||
+        a.ids[0].localeCompare(b.ids[0], undefined, { numeric: true }),
+    );
+}
+
+/**
+ * Shared top→bottom band order for leaf role groups across every zone.
+ * Keeps the same role on the same row even when a zone omits that role, so
+ * disjoint role boxes (e.g. Controllers vs Webhooks) cannot collapse together.
+ */
+export function computeGlobalRoleBandOrder(
+  zoneMemberIds: string[][],
+  ranks: Map<string, number>,
+  roleGroups: DiagramGroup[],
+): string[] {
+  const rankByKey = new Map<string, number>();
+  for (const members of zoneMemberIds) {
+    for (const id of members) {
+      const key = leafRoleGroupKey(id, roleGroups);
+      const rank = ranks.get(id) ?? 25;
+      const prev = rankByKey.get(key);
+      rankByKey.set(key, prev == null ? rank : Math.min(prev, rank));
+    }
+  }
+  return [...rankByKey.keys()].sort(
+    (a, b) =>
+      (rankByKey.get(a) ?? 25) - (rankByKey.get(b) ?? 25) ||
+      a.localeCompare(b, undefined, { numeric: true }),
+  );
+}
+
+/**
  * Expand edges whose ends are groups into member-node edges so hierarchy
  * layout can place a node that only links to a group.
  */
@@ -356,44 +445,84 @@ export function computeGridLayout(
   const roleGroups = groups.filter((g) => !isZoneGroup(g));
 
   if (zoneGroups.length > 0) {
-    // Build per-column membership and intra-column edge hints.
-    let maxRows = 1;
-    const columns = zoneGroups.map((zone) => {
-      const members = (membersByGroup.get(zone.id) ?? []).filter((id) =>
-        nodeById.has(id),
+    // Rank every zone member from global edges so role rows stay consistent
+    // across asymmetric zone membership (e.g. HA multi-olm).
+    const ranks = new Map<string, number>();
+    const zoneMemberIds = zoneGroups.map((zone) =>
+      (membersByGroup.get(zone.id) ?? []).filter((id) => nodeById.has(id)),
+    );
+    const allZoneMembers = new Set(zoneMemberIds.flat());
+    for (const id of allZoneMembers) {
+      const node = nodeById.get(id)!;
+      const incoming = new Set(
+        diagram.edges
+          .filter((e) => e.target === id && allZoneMembers.has(e.source))
+          .map((e) => e.source),
       );
-      const memberSet = new Set(members);
-      const ranked = members
-        .map((id) => {
-          const node = nodeById.get(id)!;
-          const incoming = new Set(
-            diagram.edges
-              .filter((e) => e.target === id && memberSet.has(e.source))
-              .map((e) => e.source),
-          );
-          const outgoing = new Set(
-            diagram.edges
-              .filter((e) => e.source === id && memberSet.has(e.target))
-              .map((e) => e.target),
-          );
-          return {
-            id,
-            rank: nodeRowRank(node, incoming, outgoing),
-          };
-        })
-        .sort((a, b) => a.rank - b.rank || a.id.localeCompare(b.id))
-        .map((r) => r.id);
-      maxRows = Math.max(maxRows, ranked.length);
-      return { zone, members: ranked };
+      const outgoing = new Set(
+        diagram.edges
+          .filter((e) => e.source === id && allZoneMembers.has(e.target))
+          .map((e) => e.target),
+      );
+      ranks.set(id, nodeRowRank(node, incoming, outgoing));
+    }
+
+    const globalBandOrder = computeGlobalRoleBandOrder(
+      zoneMemberIds,
+      ranks,
+      roleGroups,
+    );
+    const bandIndexByKey = new Map(
+      globalBandOrder.map((key, index) => [key, index]),
+    );
+
+    const columns = zoneGroups.map((zone, zoneIndex) => {
+      const members = zoneMemberIds[zoneIndex];
+      const bandsByKey = new Map<string, string[]>();
+      for (const id of members) {
+        const key = leafRoleGroupKey(id, roleGroups);
+        const list = bandsByKey.get(key) ?? [];
+        list.push(id);
+        bandsByKey.set(key, list);
+      }
+      for (const ids of bandsByKey.values()) {
+        ids.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+      }
+      const bands = globalBandOrder
+        .map((key) => ({
+          key,
+          ids: bandsByKey.get(key) ?? [],
+          bandIndex: bandIndexByKey.get(key) ?? 0,
+        }))
+        .filter((band) => band.ids.length > 0);
+      const width = Math.max(
+        nodeSize,
+        ...bands.map(
+          (band) =>
+            band.ids.length * nodeSize +
+            Math.max(0, band.ids.length - 1) * colGap,
+        ),
+      );
+      return { zone, bands, width };
     });
 
-    columns.forEach((col, colIndex) => {
-      col.members.forEach((id, rowIndex) => {
-        positions.set(id, {
-          x: padding + colIndex * (nodeSize + colGap) + nodeSize / 2,
-          y: padding + rowIndex * (nodeSize + rowGap) + nodeSize / 2,
+    let offsetX = padding;
+    columns.forEach((col) => {
+      const centerX = offsetX + col.width / 2;
+      col.bands.forEach((band) => {
+        const bandWidth =
+          band.ids.length * nodeSize +
+          Math.max(0, band.ids.length - 1) * colGap;
+        const bandLeft = centerX - bandWidth / 2;
+        const y = padding + band.bandIndex * (nodeSize + rowGap) + nodeSize / 2;
+        band.ids.forEach((id, i) => {
+          positions.set(id, {
+            x: bandLeft + i * (nodeSize + colGap) + nodeSize / 2,
+            y,
+          });
         });
       });
+      offsetX += col.width + colGap;
     });
 
     // Place any nodes not covered by a zone to the right.
@@ -401,7 +530,7 @@ export function computeGridLayout(
     const leftovers = diagram.nodes.filter((n) => !placed.has(n.id));
     leftovers.forEach((n, i) => {
       positions.set(n.id, {
-        x: padding + columns.length * (nodeSize + colGap) + nodeSize / 2,
+        x: offsetX + nodeSize / 2,
         y: padding + i * (nodeSize + rowGap) + nodeSize / 2,
       });
     });

@@ -1,4 +1,4 @@
-id: cert-manager-connect-standby
+id: application-connect
 kind: edge
 colors:
   light:
@@ -11,4 +11,3 @@ colors:
     text: '#f0f0f0'
 edge:
   strokeWidth: 2
-  dashArray: '6 4'

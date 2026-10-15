@@ -23,10 +23,13 @@ import {
 import { FilterIcon } from '@patternfly/react-icons';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { ArchitectureIcon } from '../components/ArchitectureIcon';
+import { ArchitectureName } from '../components/ArchitectureName';
 import {
   architectureRepository,
   collectFilterOptions,
   filterArchitectures,
+  useFixtureRevision,
   type ArchitectureSummary,
 } from '../data';
 
@@ -35,6 +38,7 @@ export function ArchitectureListPage() {
   const [items, setItems] = useState<ArchitectureSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const fixtureRevision = useFixtureRevision();
 
   const nameFilter = searchParams.get('name') ?? '';
   const usageFilter = searchParams.get('usage') ?? '';
@@ -64,7 +68,7 @@ export function ArchitectureListPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fixtureRevision]);
 
   const options = useMemo(() => collectFilterOptions(items), [items]);
   const filtered = useMemo(
@@ -195,18 +199,30 @@ export function ArchitectureListPage() {
           {filtered.map((item) => (
             <GalleryItem key={item.name}>
               <Card className="app-architecture-card" isClickable>
-                <CardTitle>
-                  <Link to={`/architectures/${encodeURIComponent(item.name)}`}>
-                    {item.name}
+                {item.icon ? (
+                  <div className="app-architecture-card-icon">
+                    <ArchitectureIcon
+                      icon={item.icon}
+                      alt=""
+                      size={56}
+                      className="app-architecture-icon app-architecture-icon--list"
+                    />
+                  </div>
+                ) : null}
+                <CardTitle className="app-architecture-title app-architecture-title--list">
+                  <Link
+                    to={`/architectures/${encodeURIComponent(item.name)}`}
+                    className="app-architecture-name-link"
+                    aria-label={item.name}
+                  >
+                    <ArchitectureName name={item.name} stacked />
                   </Link>
                   {item.version ? (
-                    <Label className="pf-v6-u-ml-sm" color="blue">
-                      {item.version}
-                    </Label>
+                    <Label color="blue">{item.version}</Label>
                   ) : null}
                 </CardTitle>
                 <CardBody>
-                  <p>{item.description}</p>
+                  <p className="app-architecture-description">{item.description}</p>
                   {item.tags.length > 0 ? (
                     <LabelGroup className="pf-v6-u-mt-sm" numLabels={4}>
                       {item.tags.map((tag) => (

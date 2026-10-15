@@ -12,3 +12,4 @@ colors:
 edge:
   strokeWidth: 2
   dashArray: '6 4'
+  bidirectional: true

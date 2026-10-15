@@ -1,11 +1,14 @@
 ---
-- name: 'cert-manager:olm:ha'
+- name: 'certificates:cert-manager:multi-olm'
   description: |-
     Highly available cert-manager deployed by the cert-manager operator.
     Replica counts: controller 2 (active/passive), CA injector 2 (active/passive), 
     webhook 3 (minimum for multi-zone availability). The webhook replicas allow
     a zone outage to be tolerated, without the risk of only one replica left in
     that situation. The operator manages operand lifecycle.
+  icon:
+    type: url
+    value: https://raw.githubusercontent.com/cncf/artwork/main/projects/cert-manager/icon/color/cert-manager-icon-color.svg
   characteristics:
   - Operator-managed.
   - High availability multi-zone.
@@ -64,51 +67,61 @@
       name: 'Webhook~2~'
       component: cert-manager-webhook
       style: cert-manager-application
+    - id: empty-1
+      name: 'Empty~1~'
+      style: empty
+    - id: empty-2
+      name: 'Empty~2~'
+      style: empty
     groups:
     - id: group-controllers
       name: Controllers
-      style: group-role
+      style: role
       nodes:
       - cert-manager-0
       - cert-manager-1
+      - empty-1
     - id: group-cainjectors
       name: CA Injectors
-      style: group-role
+      style: role
       nodes:
       - cert-manager-ca-injector-0
       - cert-manager-ca-injector-1
+      - empty-2
     - id: group-webhooks
       name: Webhooks
-      style: group-role
+      style: role
       nodes:
       - cert-manager-webhook-0
       - cert-manager-webhook-1
       - cert-manager-webhook-2
     - id: group-operands
       name: Operands
-      style: group-role
+      style: role
       groups:
       - group-controllers
       - group-cainjectors
       - group-webhooks
-    - id: zone-0
-      name: 'Zone~0~'
-      style: group-zone
+    - id: zone-a
+      name: 'Zone~a~'
+      style: zone
       nodes:
       - cert-manager-0
       - cert-manager-ca-injector-0
       - cert-manager-webhook-0
-    - id: zone-1
-      name: 'Zone~1~'
-      style: group-zone
+    - id: zone-b
+      name: 'Zone~b~'
+      style: zone
       nodes:
       - cert-manager-1
-      - cert-manager-ca-injector-1
+      - empty-2
       - cert-manager-webhook-1
-    - id: zone-2
-      name: 'Zone~2~'
-      style: group-zone
+    - id: zone-c
+      name: 'Zone~c~'
+      style: zone
       nodes:
+      - cert-manager-ca-injector-1
+      - empty-1
       - cert-manager-webhook-2
     edges:
     - source: cert-manager-operator
@@ -116,34 +129,34 @@
       style: operator-manage
     - source: cert-manager-webhook-0
       target: cert-manager-0
-      style: cert-manager-connect
+      style: application-connect
     - source: cert-manager-webhook-0
       target: cert-manager-1
-      style: cert-manager-connect-standby
+      style: standby
     - source: cert-manager-webhook-1
       target: cert-manager-0
-      style: cert-manager-connect
+      style: application-connect
     - source: cert-manager-webhook-1
       target: cert-manager-1
-      style: cert-manager-connect-standby
+      style: standby
     - source: cert-manager-webhook-2
       target: cert-manager-0
-      style: cert-manager-connect
+      style: application-connect
     - source: cert-manager-webhook-2
       target: cert-manager-1
-      style: cert-manager-connect-standby
+      style: standby
     - source: cert-manager-ca-injector-0
       target: cert-manager-0
-      style: cert-manager-connect
+      style: application-connect
     - source: cert-manager-ca-injector-0
       target: cert-manager-1
-      style: cert-manager-connect-standby
+      style: standby
     - source: cert-manager-ca-injector-1
       target: cert-manager-0
-      style: cert-manager-connect-standby
+      style: standby
     - source: cert-manager-ca-injector-1
       target: cert-manager-1
-      style: cert-manager-connect-standby
+      style: standby
   sizing:
     - name: min
       description: |-

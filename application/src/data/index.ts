@@ -24,7 +24,12 @@ export {
   patternToRegExp,
   type ArchitectureFilters,
 } from './filterArchitectures';
+export {
+  parseArchitectureName,
+  type ArchitectureNameParts,
+} from './architectureName';
 export { validateArchitecture } from './validateArchitecture';
+export { useFixtureRevision } from './useFixtureRevision';
 
 /**
  * Active data sources. Swap these for Kubernetes-backed repositories later.

@@ -47,6 +47,8 @@ export interface Architecture {
   name: string;
   version?: string;
   description: string;
+  /** Optional branding icon shown on list and detail pages. */
+  icon?: StyleLogo;
   characteristics: string[];
   usage: string[];
   /** Free-form classification labels used for list filtering */
@@ -69,6 +71,7 @@ export interface ArchitectureSummary {
   name: string;
   version?: string;
   description: string;
+  icon?: StyleLogo;
   usage: string[];
   tags: string[];
 }
@@ -92,6 +95,8 @@ export interface StyleLogo {
 export interface StyleEdgeOptions {
   strokeWidth?: number;
   dashArray?: string;
+  /** When true, omit the default end arrow (undirected / peer link). */
+  bidirectional?: boolean;
 }
 
 export interface StyleFont {
@@ -114,6 +119,11 @@ export interface StyleBox {
   text?: StyleBoxText;
 }
 
+/** Optional diagram-legend label for a style. */
+export interface StyleLegend {
+  text: string;
+}
+
 export interface StyleDefinition {
   id: string;
   kind: StyleKind;
@@ -125,6 +135,8 @@ export interface StyleDefinition {
   font?: StyleFont;
   edge?: StyleEdgeOptions;
   box?: StyleBox;
+  /** Shown in the diagram legend when this style is used as a node. */
+  legend?: StyleLegend;
 }
 
 export function normalizeDependencies(

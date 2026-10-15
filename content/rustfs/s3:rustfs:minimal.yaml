@@ -1,0 +1,57 @@
+---
+- name: 's3:rustfs:minimal'
+  description: |-
+    Single-replica RustFS S3 deployment.
+    Logo by RustFS.com is licensed under CC BY 4.0
+  icon:
+    type: url
+    value: https://raw.githubusercontent.com/rustfs/docs.rustfs.com/refs/heads/main/public/images/logo.svg
+  characteristics:
+  - Operator-deployed.
+  - Single replica and PVC.
+  version: '1.0'
+  usage:
+  - Development
+  - Edge
+  tags:
+  - s3
+  - rustfs
+  - deploy:operator
+  dependencies:
+  - certificates:cert-manager
+  - storage:csi-block-storage
+  components:
+  - rustfs-operator
+  - rustfs
+  source:
+  - https://github.com/rustfs/rustfs
+  documentation:
+  - https://docs.rustfs.com/en/latest
+  diagram:
+    nodes:
+    - id: rustfs-operator
+      name: Operator
+      component: rustfs-operator
+      style: rustfs-operator
+    - id: rustfs
+      name: Server
+      component: rustfs
+      style: rustfs-application
+    - id: csi-block-storage
+      name: CSI Block Storage
+      component: csi-block-storage
+      style: csi-block-storage
+    groups:
+    - id: group-operands
+      name: Operands
+      style: group-role
+      nodes:
+      - rustfs
+      - csi-block-storage
+    edges:
+    - source: rustfs-operator
+      target: group-operands
+      style: operator-manage
+    - source: rustfs
+      target: csi-block-storage
+      style: application-connect

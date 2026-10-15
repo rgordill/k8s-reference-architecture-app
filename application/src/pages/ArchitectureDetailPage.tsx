@@ -16,6 +16,7 @@ import { SizingSection } from '../components/SizingSection';
 import {
   architectureRepository,
   styleRepository,
+  useFixtureRevision,
   type Architecture,
   type StyleDefinition,
 } from '../data';
@@ -26,6 +27,7 @@ export function ArchitectureDetailPage() {
   const { name = '' } = useParams();
   const decodedName = decodeURIComponent(name);
   const { theme } = useTheme();
+  const fixtureRevision = useFixtureRevision();
 
   const [architecture, setArchitecture] = useState<Architecture | null>(null);
   const [styles, setStyles] = useState<StyleDefinition[]>([]);
@@ -62,7 +64,7 @@ export function ArchitectureDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [decodedName]);
+  }, [decodedName, fixtureRevision]);
 
   const relevantStyles = useMemo(() => {
     if (!architecture) {

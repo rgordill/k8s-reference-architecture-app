@@ -15,6 +15,7 @@ import {
   normalizeDependencies,
   type Architecture,
 } from '../data';
+import { ArchitectureIcon } from './ArchitectureIcon';
 
 function dependencyBrowsePath(pattern: string): string {
   const params = new URLSearchParams();
@@ -29,8 +30,14 @@ export function ArchitectureMeta({ architecture }: { architecture: Architecture 
 
   return (
     <>
-      <Title headingLevel="h2" size="xl">
-        {architecture.name}
+      <Title headingLevel="h2" size="xl" className="app-architecture-title">
+        <ArchitectureIcon
+          icon={architecture.icon}
+          alt=""
+          size={40}
+          className="app-architecture-icon app-architecture-icon--detail"
+        />
+        <span>{architecture.name}</span>
         {architecture.version ? (
           <Label className="pf-v6-u-ml-sm" color="blue">
             {architecture.version}

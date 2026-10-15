@@ -1,9 +1,13 @@
 ---
-- name: 'hashicorp-vault:dev'
+- name: 'vault:hashicorp-vault:dev'
   version: '2.x'
   description: |-
     A single HashiCorp Vault server for development, testing, and proof-of-concepts.
     Vault Agent Injector is used to inject the Vault agent into the pod if it is needed.
+  icon:
+    type: url
+    value: logo/vault/Vault-LogoMark_onLight.svg
+    valueDark: logo/vault/Vault-LogoMark_onDark.svg
   characteristics:
   - Minimal footprint.
   - One HashiCorp Vault server, no high availability.

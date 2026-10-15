@@ -74,6 +74,19 @@ box:
       justify: 'center',
     });
   });
+
+  it('parses legend text', () => {
+    const style = parseStyleFile(`
+id: postgresql
+kind: node
+colors:
+  light: { fill: '#e8eef4', stroke: '#336791', text: '#151515' }
+  dark: { fill: '#1a2f42', stroke: '#8fb4d1', text: '#f0f0f0' }
+legend:
+  text: PostgreSQL
+`);
+    expect(style.legend).toEqual({ text: 'PostgreSQL' });
+  });
 });
 
 describe('validateArchitecture', () => {

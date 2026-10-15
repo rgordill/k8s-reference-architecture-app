@@ -1,0 +1,20 @@
+id: rustfs-operator
+logo:
+  type: url
+  value: https://raw.githubusercontent.com/rustfs/docs.rustfs.com/refs/heads/main/public/images/logo.svg
+colors:
+  light:
+    fill: '#e8eef4'
+    stroke: '#336791'
+    text: '#151515'
+  dark:
+    fill: '#1a2f42'
+    stroke: '#8fb4d1'
+    text: '#f0f0f0'
+font:
+  family: 'RedHatText, Overpass, sans-serif'
+  size: 11
+edge:
+  strokeWidth: 4
+legend:
+  text: 'Operator'

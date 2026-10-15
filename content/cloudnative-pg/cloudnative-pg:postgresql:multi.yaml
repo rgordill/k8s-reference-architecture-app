@@ -1,0 +1,145 @@
+---
+- name: 'postgres:cloudnative-pg:multi'
+  description: |-
+    High-availability cloudnative-pg, one read/write replica and two read only replicas.
+    Storage split into data and WAL per replica. Multiple zones for high availability.
+  icon:
+    type: url
+    value: https://raw.githubusercontent.com/cloudnative-pg/artwork/refs/heads/main/portrait/cloudnativepg-portrait-blue.svg
+    valueDark: https://raw.githubusercontent.com/cloudnative-pg/artwork/refs/heads/main/portrait/cloudnativepg-portrait-white.svg
+  characteristics:
+  - Operator-managed.
+  - High-availability.
+  - Multiple zones.
+  version: '1.30'
+  usage:
+  - Production
+  - Edge
+  tags:
+  - cloudnative-pg
+  - development
+  - deploy:operator
+  dependencies:
+  - csi-block-storage
+  - certificates:cert-manager
+  - s3
+  components:
+  - cloudnative-pg-operator
+  - postgresql
+  - csi-block-storage
+  source:
+  - https://github.com/cloudnative-pg/cloudnative-pg
+  documentation:
+  - https://deepwiki.com/cloudnative-pg/cloudnative-pg/3-core-components
+  - https://cloudnative-pg.io/docs/
+  - https://github.com/EnterpriseDB/edb-ref-archs
+  diagram:
+    nodes:
+    - id: cloudnative-pg-operator
+      name: Operator
+      component: cloudnative-pg-operator
+      style: cloudnative-pg-operator
+    - id: postgresql-0
+      name: PostgreSQL~0~ Read/Write
+      component: postgresql
+      style: postgresql
+    - id: postgresql-1
+      name: PostgreSQL~1~ Read Only
+      component: postgresql
+      style: postgresql-ro
+    - id: postgresql-2
+      name: PostgreSQL~2~ Read Only
+      component: postgresql
+      style: postgresql-ro
+    - id: csi-block-storage-data-0
+      name: Data
+      component: csi-block-storage
+      style: csi-block-storage
+    - id: csi-block-storage-wal-0
+      name: WAL
+      component: csi-block-storage
+      style: csi-block-storage
+    - id: csi-block-storage-data-1
+      name: Data
+      component: csi-block-storage
+      style: csi-block-storage
+    - id: csi-block-storage-wal-1
+      name: WAL
+      component: csi-block-storage
+      style: csi-block-storage
+    - id: csi-block-storage-data-2
+      name: Data
+      component: csi-block-storage
+      style: csi-block-storage
+    - id: csi-block-storage-wal-2
+      name: WAL
+      component: csi-block-storage
+      style: csi-block-storage
+    groups:
+    - id: group-postgres
+      name: PostgreSQL
+      style: group-role
+      nodes:
+      - postgresql-0
+      - postgresql-1
+      - postgresql-2
+    - id: group-csi-block-storage
+      name: CSI Block Storage
+      style: group-role
+      nodes:
+      - csi-block-storage-data-0
+      - csi-block-storage-data-1
+      - csi-block-storage-data-2
+      - csi-block-storage-wal-0
+      - csi-block-storage-wal-1
+      - csi-block-storage-wal-2
+    - id: group-operands
+      name: Operands
+      style: group-role
+      groups:
+      - group-postgres
+      - group-csi-block-storage
+    - id: zone-a
+      name: 'Zone~a~'
+      style: zone
+      nodes:
+      - postgresql-0
+      - csi-block-storage-data-0
+      - csi-block-storage-wal-0
+    - id: zone-b
+      name: 'Zone~b~'
+      style: zone
+      nodes:
+      - postgresql-1
+      - csi-block-storage-data-1
+      - csi-block-storage-wal-1
+    - id: zone-c
+      name: 'Zone~c~'
+      style: zone
+      nodes:
+      - postgresql-2
+      - csi-block-storage-data-2
+      - csi-block-storage-wal-2
+    edges:
+    - source: cloudnative-pg-operator
+      target: group-operands
+      style: operator-manage
+    - source: postgresql-0
+      target: csi-block-storage-data-0
+      style: csi-block-storage
+    - source: postgresql-0
+      target: csi-block-storage-wal-0
+      style: csi-block-storage
+    - source: postgresql-1
+      target: csi-block-storage-data-1
+      style: csi-block-storage
+    - source: postgresql-1
+      target: csi-block-storage-wal-1
+      style: csi-block-storage
+    - source: postgresql-2
+      target: csi-block-storage-data-2
+      style: csi-block-storage
+    - source: postgresql-2
+      target: csi-block-storage-wal-2
+      style: csi-block-storage
+  sizing:

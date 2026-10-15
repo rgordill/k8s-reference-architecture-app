@@ -1,10 +1,10 @@
-id: hashicorp-vault-application
+id: vault-application
 kind: node
 logo:
   type: url
   # Vault Community from https://www.hashicorp.com/en/brand/hcp-product-logos
-  value: logo/vault/Vault-LogoMark_onLight.svg
-  valueDark: logo/vault/Vault-LogoMark_onDark.svg
+  value: logo/vault/Vault-Community_onLight.svg
+  valueDark: logo/vault/Vault-Community_onDark.svg
 colors:
   light:
     fill: '#e7f1fa'
@@ -17,3 +17,5 @@ colors:
 font:
   family: 'RedHatText, Overpass, sans-serif'
   size: 12
+legend:
+  text: 'Vault Application'

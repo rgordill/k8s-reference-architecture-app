@@ -18,3 +18,5 @@ font:
   size: 11
 edge:
   strokeWidth: 4
+legend:
+  text: 'Operator'
