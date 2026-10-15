@@ -21,7 +21,7 @@ export function collectNodeLegendEntries(
   const styleMap =
     styles instanceof Map
       ? styles
-      : new Map(styles.map((style) => [style.id, style]));
+      : new Map((styles as StyleDefinition[]).map((style) => [style.id, style]));
 
   const seen = new Set<string>();
   const entries: DiagramLegendEntry[] = [];
